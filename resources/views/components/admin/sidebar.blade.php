@@ -14,7 +14,7 @@
             <i data-lucide="layout-dashboard"></i>
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Dashboard</span>
         </a>
-        <a href="#" class="nav-item {{ request()->routeIs('admin.users') ? 'active' : '' }}">
+        <a href="{{ route('admin.users') }}" class="nav-item {{ request()->routeIs('admin.users') ? 'active' : '' }}">
             <i data-lucide="users"></i>
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">User Management</span>
         </a>
@@ -22,7 +22,7 @@
             <i data-lucide="calendar"></i>
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Event Management</span>
         </a>
-        <a href="#" class="nav-item {{ request()->routeIs('admin.team') ? 'active' : '' }}">
+        <a href="{{ route('admin.teams') }}" class="nav-item {{ request()->routeIs('admin.teams') ? 'active' : '' }}">
             <i data-lucide="monitor"></i>
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Team Monitoring</span>
         </a>
@@ -33,7 +33,7 @@
 
         <div class="nav-divider"></div>
 
-        <a href="#" class="nav-item {{ request()->routeIs('admin.announcement') ? 'active' : '' }}">
+        <a href="{{ route('admin.announcement') }}" class="nav-item {{ request()->routeIs('admin.announcement') ? 'active' : '' }}">
             <i data-lucide="megaphone"></i>
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Announcement</span>
         </a>

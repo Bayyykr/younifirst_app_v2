@@ -14,5 +14,15 @@ export default defineConfig({
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
+        host: true,
+        strictPort: true,
+        allowedHosts: ['.ngrok-free.app', 'unelusive-lylah-goodheartedly.ngrok-free.dev'],
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+                secure: false,
+            }
+        }
     },
 });

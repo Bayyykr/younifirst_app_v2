@@ -573,6 +573,119 @@ body {
 
 .text-success { color: #10B981 !important; }
 
+/* Status Badges Aliases for Teams */
+.status-open {
+    background: #DCFCE7;
+    color: #166534;
+}
+.status-full {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+/* Team Filter Group */
+.team-filter {
+    display: flex;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 4px;
+}
+.team-filter-btn {
+    padding: 8px 24px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.team-filter-btn.active {
+    background: #3B82F6;
+    color: #fff;
+}
+
+/* Team Avatar Stack */
+.avatar-group {
+    display: flex;
+    align-items: center;
+}
+.avatar-group img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    margin-left: -12px;
+    object-fit: cover;
+    z-index: 1;
+}
+.avatar-group img:first-child {
+    margin-left: 0;
+    z-index: 2;
+}
+.avatar-group img:nth-child(2) { z-index: 3; }
+.avatar-group img:nth-child(3) { z-index: 4; }
+
+.more-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    margin-left: -12px;
+    background: #DBEAFE;
+    color: #2563EB;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+}
+.anggota-text {
+    margin-left: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #3B82F6;
+}
+.anggota-text .pending {
+    color: #F97316;
+    font-weight: 400;
+}
+
+/* Team Icon Wrapper */
+.team-info {
+    display: flex;
+    align-items: center;
+}
+.team-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    background: #EFF6FF;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3B82F6;
+    margin-right: 16px;
+}
+.team-icon-wrapper svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Announcement Utility */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.5;
+    max-height: 3em; 
+}
+
 /* Responsive States */
 @media (max-width: 768px) {
     .sidebar {
