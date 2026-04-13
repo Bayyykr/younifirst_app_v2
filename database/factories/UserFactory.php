@@ -12,9 +12,6 @@ class UserFactory extends Factory
 {
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     */
     public function definition(): array
     {
         $roles = ['admin', 'user'];
@@ -26,6 +23,7 @@ class UserFactory extends Factory
             'Manajemen',
             'Akuntansi',
         ];
+        $statuses = ['active', 'inactive', 'suspended', 'blocked'];
 
         return [
             'user_id'    => strtoupper(substr($this->faker->unique()->bothify('USR#####'), 0, 10)),
@@ -33,11 +31,11 @@ class UserFactory extends Factory
             'email'      => $this->faker->unique()->safeEmail(),
             'password'   => static::$password ??= Hash::make('password'),
             'role'       => $this->faker->randomElement($roles),
-            'nim'        => $this->faker->numerify('#########'),
+            'nim'        => $this->faker->numerify('E41240###'),
             'prodi'      => $this->faker->randomElement($prodis),
             'photo'      => null,
-            'status'     => 'active',
-            'created_at' => now(),
+            'status'     => $this->faker->randomElement($statuses),
+            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
         ];
     }
 

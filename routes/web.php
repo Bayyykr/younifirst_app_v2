@@ -40,3 +40,20 @@ Route::post('/reset-password', function () {
 Route::get('/admin/dashboard', function () {
     return view('admin.dashboard');
 })->name('admin.dashboard');
+
+Route::get('/admin/users', function () {
+    $users = \App\Models\User::latest()->get()->map(function($user) {
+        return [
+            'id' => $user->user_id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'nim' => $user->nim ?? '-',
+            'prodi' => $user->prodi ?? '-',
+            'joined' => $user->created_at->format('d M Y'),
+            'status' => strtolower($user->status),
+            'encoded_name' => urlencode($user->name)
+        ];
+    });
+    
+    return view('admin.users', compact('users'));
+})->name('admin.users');
