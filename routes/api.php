@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/add', 'store');
         Route::put('/{event_id}', 'update');
         Route::delete('/{event_id}', 'destroy');
+        Route::post('/{event_id}/like', 'toggleLike');
     });
 
     // ── TEAMS ────────────────────────────────────────────────
@@ -80,5 +81,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/add', 'store');
         Route::put('/{lostfound_id}', 'update');
         Route::delete('/{lostfound_id}', 'destroy');
+        Route::post('/{lostfound_id}/comments', 'addComment');
     });
 });

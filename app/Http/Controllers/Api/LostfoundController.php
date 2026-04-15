@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\LostfoundItem;
+use App\Models\LostfoundComment;
 use App\Models\Views\ViewLostfound;
 use App\Models\Views\ViewLostfoundComment;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class LostfoundController extends Controller
         }
         if ($request->filled('status_id')) $query->where('status_id', $request->status_id);
 
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->input('per_page', 15), 100);
 
         return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
     }
@@ -47,7 +48,7 @@ class LostfoundController extends Controller
      */
     public function comments(string $lostfound_id, Request $request)
     {
-        $perPage  = min((int) $request->get('per_page', 20), 100);
+        $perPage  = min((int) $request->input('per_page', 20), 100);
         $comments = ViewLostfoundComment::where('lostfound_id', $lostfound_id)
                         ->orderBy('created_at', 'asc')
                         ->paginate($perPage);
@@ -73,7 +74,7 @@ class LostfoundController extends Controller
         // Generate custom ID: LNF + 7 random characters (total 10)
         $item->lostfound_id = 'LNF' . strtoupper(Str::random(7));
         $item->fill($validated);
-        $item->created_at = now();
+        $item->created_at = \Illuminate\Support\Carbon::now();
         $item->save();
 
         return response()->json(['message' => 'Lost/Found item created successfully', 'data' => $item], 214);
@@ -114,5 +115,35 @@ class LostfoundController extends Controller
         $item->save();
 
         return response()->json(['message' => 'Lost/Found item deleted successfully']);
+    }
+
+    /**
+     * POST /api/lostfound/{lostfound_id}/comments
+     */
+    public function addComment(string $lostfound_id, Request $request)
+    {
+        $user = $request->user();
+
+        // 1. Verify item exists
+        $item = LostfoundItem::where('lostfound_id', $lostfound_id)->firstOrFail();
+
+        // 2. Validate input
+        $validated = $request->validate([
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        // 3. Create comment
+        $comment = new LostfoundComment();
+        $comment->comment_id   = 'CMT' . strtoupper(Str::random(7));
+        $comment->lostfound_id = $lostfound_id;
+        $comment->user_id      = $user->user_id;
+        $comment->comment      = $validated['comment'];
+        $comment->created_at   = \Illuminate\Support\Carbon::now();
+        $comment->save();
+
+        return response()->json([
+            'message' => 'Comment added successfully',
+            'data'    => $comment
+        ], 201);
     }
 }

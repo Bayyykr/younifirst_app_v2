@@ -35,7 +35,7 @@ class TeamController extends Controller
             };
         }
 
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->input('per_page', 15), 100);
 
         return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
     }
@@ -59,7 +59,7 @@ class TeamController extends Controller
         if ($request->filled('role'))   $query->where('member_role', $request->role);
         if ($request->filled('status')) $query->where('member_status', $request->status);
 
-        $perPage = min((int) $request->get('per_page', 20), 100);
+        $perPage = min((int) $request->input('per_page', 20), 100);
 
         return response()->json($query->paginate($perPage));
     }
@@ -80,7 +80,7 @@ class TeamController extends Controller
         // Generate custom ID: TEM + 7 random characters (total 10)
         $team->team_id = 'TEM' . strtoupper(Str::random(7));
         $team->fill($validated);
-        $team->created_at = now();
+        $team->created_at = \Illuminate\Support\Carbon::now();
         $team->save();
 
         return response()->json(['message' => 'Team created successfully', 'data' => $team], 211);

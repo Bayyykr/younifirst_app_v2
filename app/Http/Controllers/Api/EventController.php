@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventLike;
 use App\Models\Views\ViewEvent;
 use App\Models\Views\ViewEventLike;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class EventController extends Controller
         if ($request->filled('status'))      $query->where('status', $request->status);
         if ($request->filled('category_id')) $query->where('category_id', $request->category_id);
 
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->input('per_page', 15), 100);
 
         return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
     }
@@ -48,7 +49,7 @@ class EventController extends Controller
      */
     public function likes(string $event_id, Request $request)
     {
-        $perPage = min((int) $request->get('per_page', 20), 100);
+        $perPage = min((int) $request->input('per_page', 20), 100);
         $likes   = ViewEventLike::where('event_id', $event_id)
                        ->orderBy('liked_at', 'desc')
                        ->paginate($perPage);
@@ -77,7 +78,7 @@ class EventController extends Controller
         // Generate custom ID: EVT + 7 random characters (total 10)
         $event->event_id = 'EVT' . strtoupper(Str::random(7));
         $event->fill($validated);
-        $event->created_at = now();
+        $event->created_at = \Illuminate\Support\Carbon::now();
         $event->save();
 
         return response()->json(['message' => 'Event created successfully', 'data' => $event], 213);
@@ -121,5 +122,44 @@ class EventController extends Controller
         $event->save();
 
         return response()->json(['message' => 'Event deleted (soft) successfully']);
+    }
+
+    /**
+     * POST /api/events/{event_id}/like
+     */
+    public function toggleLike(string $event_id, Request $request)
+    {
+        $user = $request->user();
+        
+        // 1. Verify event exists
+        $event = Event::where('event_id', $event_id)->firstOrFail();
+
+        // 2. Check if already liked
+        $existingLike = EventLike::where('event_id', $event_id)
+            ->where('user_id', $user->user_id)
+            ->first();
+
+        if ($existingLike) {
+            // UNLIKE
+            $existingLike->delete();
+            return response()->json([
+                'message' => 'Event unliked successfully',
+                'status'  => 'unliked'
+            ]);
+        } else {
+            // LIKE
+            $like = new EventLike();
+            $like->like_id    = (string) Str::uuid();
+            $like->event_id   = $event_id;
+            $like->user_id    = $user->user_id;
+            $like->created_at = \Illuminate\Support\Carbon::now();
+            $like->save();
+
+            return response()->json([
+                'message' => 'Event liked successfully',
+                'status'  => 'liked',
+                'data'    => $like
+            ], 201);
+        }
     }
 }
