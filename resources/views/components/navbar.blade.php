@@ -17,7 +17,7 @@
 
         <!-- Buttons Section -->
         <div class="flex items-center space-x-3 shrink-0">
-            <a href="#" class="flex items-center px-5 py-2 text-[14px] font-bold text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50 transition-all whitespace-nowrap">
+            <a href="{{ route('login') }}" class="flex items-center px-5 py-2 text-[14px] font-bold text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50 transition-all whitespace-nowrap">
                 <span>Login</span>
                 <svg class="w-3.5 h-3.5 ml-1.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>

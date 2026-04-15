@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AnnouncementController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\LostfoundController;
 use App\Http\Controllers\Api\TeamController;
@@ -8,48 +9,76 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// ─────────────────────────────────────────────────────────────
-//  Auth-protected route (Sanctum)
-// ─────────────────────────────────────────────────────────────
+/**
+ * ─────────────────────────────────────────────────────────────
+ *  Public API Routes
+ * ─────────────────────────────────────────────────────────────
+ */
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/auth/firebase', [AuthController::class, 'loginWithFirebase']);
 
-// ─────────────────────────────────────────────────────────────
-//  API Routes — semua read-only via Database Views
-//  Base URL: /api/...
-// ─────────────────────────────────────────────────────────────
+/**
+ * ─────────────────────────────────────────────────────────────
+ *  Auth-protected routes (Sanctum)
+ * ─────────────────────────────────────────────────────────────
+ */
 
-// ── USERS ────────────────────────────────────────────────
-Route::prefix('users')->controller(UserController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::get('/{user_id}', 'show');
-});
+Route::middleware('auth:sanctum')->group(function () {
+    
+    // Auth Status & Logout
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-// ── EVENTS ───────────────────────────────────────────────
-Route::prefix('events')->controller(EventController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::get('/{event_id}', 'show');
-    Route::get('/{event_id}/likes', 'likes');
-});
+    // ── USERS ────────────────────────────────────────────────
+    Route::prefix('users')->controller(UserController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{user_id}', 'show');
+        Route::post('/add', 'store');
+        Route::put('/{user_id}', 'update');
+        Route::delete('/{user_id}', 'destroy');
+    });
 
-// ── TEAMS ────────────────────────────────────────────────
-Route::prefix('teams')->controller(TeamController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::get('/{team_id}', 'show');
-    Route::get('/{team_id}/members', 'members');
-});
+    // ── EVENTS ───────────────────────────────────────────────
+    Route::prefix('events')->controller(EventController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{event_id}', 'show');
+        Route::get('/{event_id}/likes', 'likes');
+        Route::post('/add', 'store');
+        Route::put('/{event_id}', 'update');
+        Route::delete('/{event_id}', 'destroy');
+    });
 
-// ── ANNOUNCEMENTS ─────────────────────────────────────────
-Route::prefix('announcements')->controller(AnnouncementController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::get('/{announcement_id}', 'show');
-});
+    // ── TEAMS ────────────────────────────────────────────────
+    Route::prefix('teams')->controller(TeamController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{team_id}', 'show');
+        Route::get('/{team_id}/members', 'members');
+        Route::post('/add', 'store');
+        Route::put('/{team_id}', 'update');
+        Route::delete('/{team_id}', 'destroy');
+        Route::post('/{team_id}/join', 'join');
+        Route::post('/{team_id}/members/{member_id}/respond', 'respondJoin');
+    });
 
-// ── LOST & FOUND ─────────────────────────────────────────
-Route::prefix('lostfound')->controller(LostfoundController::class)->group(function () {
-    Route::get('/', 'index');
-    Route::get('/{lostfound_id}', 'show');
-    Route::get('/{lostfound_id}/comments', 'comments');
+    // ── ANNOUNCEMENTS ─────────────────────────────────────────
+    Route::prefix('announcements')->controller(AnnouncementController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{announcement_id}', 'show');
+        Route::post('/add', 'store');
+        Route::put('/{announcement_id}', 'update');
+        Route::delete('/{announcement_id}', 'destroy');
+    });
+
+    // ── LOST & FOUND ─────────────────────────────────────────
+    Route::prefix('lostfound')->controller(LostfoundController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{lostfound_id}', 'show');
+        Route::get('/{lostfound_id}/comments', 'comments');
+        Route::post('/add', 'store');
+        Route::put('/{lostfound_id}', 'update');
+        Route::delete('/{lostfound_id}', 'destroy');
+    });
 });

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\LostfoundItem;
 use App\Models\Views\ViewLostfound;
 use App\Models\Views\ViewLostfoundComment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class LostfoundController extends Controller
 {
@@ -51,5 +53,66 @@ class LostfoundController extends Controller
                         ->paginate($perPage);
 
         return response()->json($comments);
+    }
+
+    /**
+     * POST /api/lostfound
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id'     => 'required|exists:users,user_id',
+            'item_name'   => 'required|string|max:50',
+            'description' => 'required|string',
+            'photo'       => 'nullable|string',
+            'location'    => 'required|string|max:255',
+            'status_id'   => 'required|exists:item_status,status_id',
+        ]);
+
+        $item = new LostfoundItem();
+        // Generate custom ID: LNF + 7 random characters (total 10)
+        $item->lostfound_id = 'LNF' . strtoupper(Str::random(7));
+        $item->fill($validated);
+        $item->created_at = now();
+        $item->save();
+
+        return response()->json(['message' => 'Lost/Found item created successfully', 'data' => $item], 214);
+    }
+
+    /**
+     * PUT /api/lostfound/{lostfound_id}
+     */
+    public function update(Request $request, string $lostfound_id)
+    {
+        $item = LostfoundItem::where('lostfound_id', $lostfound_id)->firstOrFail();
+
+        $validated = $request->validate([
+            'item_name'   => 'sometimes|required|string|max:50',
+            'description' => 'sometimes|required|string',
+            'photo'       => 'nullable|string',
+            'location'    => 'sometimes|required|string|max:255',
+            'status_id'   => 'sometimes|required|exists:item_status,status_id',
+        ]);
+
+        $item->fill($validated);
+        $item->updated_at = now();
+        $item->save();
+
+        return response()->json(['message' => 'Lost/Found item updated successfully', 'data' => $item]);
+    }
+
+    /**
+     * DELETE /api/lostfound/{lostfound_id}
+     */
+    public function destroy(string $lostfound_id)
+    {
+        $item = LostfoundItem::where('lostfound_id', $lostfound_id)->firstOrFail();
+        $item->delete();
+
+        // Manual soft delete logic if not using SoftDeletes trait
+        $item->deleted_at = now();
+        $item->save();
+
+        return response()->json(['message' => 'Lost/Found item deleted successfully']);
     }
 }

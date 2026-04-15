@@ -30,7 +30,7 @@
                         Download Aplikasi
                     </a>
 
-                    <a href="#"
+                    <a href="{{ route('login') }}"
                         class="w-48 justify-center flex items-center space-x-2 py-2.5 text-[14px] font-bold text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 transition-all group">
                         <span>Login Admin</span>
                         <svg class="w-3.5 h-3.5 opacity-70 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

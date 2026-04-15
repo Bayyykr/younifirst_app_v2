@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+use Laravel\Sanctum\HasApiTokens;
+
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $primaryKey = 'user_id';
     public $incrementing = false;
@@ -16,7 +18,7 @@ class User extends Authenticatable
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'name', 'email', 'password', 'role',
+        'user_id', 'firebase_uid', 'name', 'email', 'password', 'role',
         'nim', 'prodi', 'photo', 'status', 'created_at',
     ];
 
