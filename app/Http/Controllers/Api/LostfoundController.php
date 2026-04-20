@@ -90,7 +90,7 @@ class LostfoundController extends Controller
         $validated = $request->validate([
             'item_name'   => 'sometimes|required|string|max:50',
             'description' => 'sometimes|required|string',
-            'photo'       => 'nullable|string',
+            'photo'       => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'location'    => 'sometimes|required|string|max:255',
             'status_id'   => 'sometimes|required|exists:item_status,status_id',
         ]);

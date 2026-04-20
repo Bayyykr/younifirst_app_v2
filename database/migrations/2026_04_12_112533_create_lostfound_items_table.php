@@ -13,7 +13,7 @@ return new class extends Migration
             $table->char('user_id', 10);
             $table->string('item_name', 50);
             $table->text('description');
-            $table->binary('photo')->nullable();
+            $table->longBlob('photo')->nullable();
             $table->string('location', 255);
             $table->integer('status_id');
             $table->timestamp('created_at')->nullable();

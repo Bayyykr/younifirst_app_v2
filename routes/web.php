@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\LostfoundController as AdminLostfoundController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -41,4 +43,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users');
     Route::get('/teams', [TeamController::class, 'index'])->name('teams');
     Route::get('/announcement', [AnnouncementController::class, 'index'])->name('announcement');
+    Route::get('/lostfound', [AdminLostfoundController::class, 'index'])->name('lostfound');
+    Route::get('/events', [EventController::class, 'index'])->name('events');
+    Route::post('/events/{event_id}/respond', [EventController::class, 'respond'])->name('events.respond');
+    Route::delete('/events/{event_id}', [EventController::class, 'destroy'])->name('events.destroy');
 });

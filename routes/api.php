@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/auth/firebase', [AuthController::class, 'loginWithFirebase']);
 
 /**
  * ─────────────────────────────────────────────────────────────

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('events', function (Blueprint $table) {
@@ -16,7 +15,7 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->string('location', 255);
-            $table->binary('poster')->nullable();
+            $table->longBlob('poster')->nullable();
             $table->char('created_by', 10);
             $table->enum('status', ['upcoming', 'ongoing', 'completed', 'cancelled'])->default('upcoming');
             $table->timestamp('created_at')->nullable();

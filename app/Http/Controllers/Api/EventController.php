@@ -19,20 +19,46 @@ class EventController extends Controller
     {
         $query = ViewEvent::query();
 
+        // -- Full-text search across title, description, location, creator name
         if ($request->filled('search')) {
             $q = $request->search;
             $query->where(function ($qb) use ($q) {
                 $qb->where('title', 'like', "%$q%")
                    ->orWhere('description', 'like', "%$q%")
-                   ->orWhere('location', 'like', "%$q%");
+                   ->orWhere('location', 'like', "%$q%")
+                   ->orWhere('creator_name', 'like', "%$q%");
             });
         }
-        if ($request->filled('status'))      $query->where('status', $request->status);
-        if ($request->filled('category_id')) $query->where('category_id', $request->category_id);
+
+        // -- Status filter (supports: pending, upcoming, ongoing, completed, cancelled, rejected)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // -- Category filter by ID
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // -- Category filter by name (partial match)
+        if ($request->filled('category_name')) {
+            $query->where('category_name', 'like', '%' . $request->category_name . '%');
+        }
+
+        // -- Date range filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('start_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('start_date', '<=', $request->date_to);
+        }
 
         $perPage = min((int) $request->input('per_page', 15), 100);
+        $sortBy  = in_array($request->input('sort_by'), ['created_at', 'start_date', 'title']) 
+                   ? $request->input('sort_by') : 'created_at';
+        $sortDir = $request->input('sort_dir', 'desc') === 'asc' ? 'asc' : 'desc';
 
-        return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
+        return response()->json($query->orderBy($sortBy, $sortDir)->paginate($perPage));
     }
 
     /**
@@ -69,9 +95,9 @@ class EventController extends Controller
             'start_date'  => 'required|date',
             'end_date'    => 'required|date|after_or_equal:start_date',
             'location'    => 'required|string|max:255',
-            'poster'      => 'nullable|string',
+            'poster'      => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'created_by'  => 'required|exists:users,user_id',
-            'status'      => 'nullable|in:upcoming,ongoing,completed,cancelled',
+            'status'      => 'nullable|in:pending,upcoming,ongoing,completed,cancelled,rejected',
         ]);
 
         $event = new Event();
@@ -99,7 +125,7 @@ class EventController extends Controller
             'end_date'    => 'sometimes|required|date|after_or_equal:start_date',
             'location'    => 'sometimes|required|string|max:255',
             'poster'      => 'nullable|string',
-            'status'      => 'sometimes|required|in:upcoming,ongoing,completed,cancelled',
+            'status'      => 'sometimes|required|in:pending,upcoming,ongoing,completed,cancelled,rejected',
         ]);
 
         $event->fill($validated);

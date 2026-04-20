@@ -4,23 +4,59 @@ namespace App\Services;
 
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class FirebaseService
 {
     protected $auth;
+    protected string $apiKey;
 
     public function __construct()
     {
+        $this->apiKey = env('FIREBASE_API_KEY', '');
+
         try {
             $credentialsPath = base_path(env('FIREBASE_CREDENTIALS', 'storage/firebase/service-account.json'));
-            
+
             $factory = (new Factory)
                 ->withServiceAccount($credentialsPath);
 
             $this->auth = $factory->createAuth();
         } catch (\Exception $e) {
             Log::error('Firebase Initialization Failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Sign in with email & password via Firebase REST API.
+     * Returns ['uid' => '...', 'idToken' => '...'] on success, or null on failure.
+     */
+    public function signInWithEmailAndPassword(string $email, string $password): ?array
+    {
+        try {
+            $response = Http::post(
+                "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={$this->apiKey}",
+                [
+                    'email'             => $email,
+                    'password'          => $password,
+                    'returnSecureToken' => true,
+                ]
+            );
+
+            if ($response->failed()) {
+                $error = $response->json('error.message', 'UNKNOWN_ERROR');
+                Log::warning("Firebase signIn failed: {$error}");
+                return null;
+            }
+
+            return [
+                'uid'     => $response->json('localId'),
+                'idToken' => $response->json('idToken'),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Firebase signInWithEmailAndPassword error: ' . $e->getMessage());
+            return null;
         }
     }
 
@@ -48,10 +84,10 @@ class FirebaseService
     {
         try {
             $userProperties = [
-                'email' => $email,
+                'email'         => $email,
                 'emailVerified' => false,
-                'password' => $password,
-                'disabled' => false,
+                'password'      => $password,
+                'disabled'      => false,
             ];
 
             if ($displayName) {
@@ -78,3 +114,4 @@ class FirebaseService
         }
     }
 }
+
