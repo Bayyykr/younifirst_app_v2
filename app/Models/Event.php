@@ -20,6 +20,8 @@ class Event extends Model
         'start_date', 'end_date', 'location', 'poster',
         'created_by', 'status', 'created_at', 'updated_at', 'deleted_at',
     ];
+    
+    protected $appends = ['poster_url'];
 
     protected $casts = [
         'start_date' => 'datetime',
@@ -27,6 +29,7 @@ class Event extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'poster'     => 'string',
     ];
 
     public function category()
@@ -42,5 +45,12 @@ class Event extends Model
     public function likes()
     {
         return $this->hasMany(EventLike::class, 'event_id', 'event_id');
+    }
+
+    protected function posterUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => $this->poster ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->poster) : null,
+        );
     }
 }

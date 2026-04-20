@@ -17,7 +17,7 @@ class AnnouncementFactory extends Factory
             'title'           => $this->faker->sentence(6),
             'content'         => $this->faker->paragraphs(3, true),
             'file'            => null,
-            'created_by'      => User::inRandomOrder()->value('user_id'),
+            'created_by'      => User::where('role', 'admin')->inRandomOrder()->value('user_id') ?? 'ADM0000001',
             'created_at'      => now(),
         ];
     }

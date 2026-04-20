@@ -9,6 +9,7 @@ use App\Models\Views\ViewEvent;
 use App\Models\Views\ViewEventLike;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -103,7 +104,13 @@ class EventController extends Controller
         $event = new Event();
         // Generate custom ID: EVT + 7 random characters (total 10)
         $event->event_id = 'EVT' . strtoupper(Str::random(7));
-        $event->fill($validated);
+        $event->fill($request->except('poster'));
+
+        if ($request->hasFile('poster')) {
+            $path = $request->file('poster')->store('events', 'public');
+            $event->poster = $path;
+        }
+
         $event->created_at = \Illuminate\Support\Carbon::now();
         $event->save();
 
@@ -117,18 +124,36 @@ class EventController extends Controller
     {
         $event = Event::where('event_id', $event_id)->firstOrFail();
 
-        $validated = $request->validate([
+        $validatedData = [
             'category_id' => 'sometimes|required|exists:event_categories,category_id',
             'title'       => 'sometimes|required|string|max:50',
             'description' => 'sometimes|required|string',
             'start_date'  => 'sometimes|required|date',
             'end_date'    => 'sometimes|required|date|after_or_equal:start_date',
             'location'    => 'sometimes|required|string|max:255',
-            'poster'      => 'nullable|string',
             'status'      => 'sometimes|required|in:pending,upcoming,ongoing,completed,cancelled,rejected',
-        ]);
+        ];
 
-        $event->fill($validated);
+        // Only validate poster as image if it's a file upload
+        if ($request->hasFile('poster')) {
+            $validatedData['poster'] = 'image|mimes:jpeg,png,jpg|max:5120';
+        } else {
+            $validatedData['poster'] = 'nullable';
+        }
+
+        $validated = $request->validate($validatedData);
+
+        $event->fill($request->except('poster'));
+
+        if ($request->hasFile('poster')) {
+            // Delete old poster if exists
+            if ($event->poster) {
+                Storage::disk('public')->delete($event->poster);
+            }
+            $path = $request->file('poster')->store('events', 'public');
+            $event->poster = $path;
+        }
+
         $event->updated_at = now();
         $event->save();
 

@@ -18,7 +18,18 @@ class ViewAnnouncement extends Model
 
     protected $guarded = ['*'];
 
+    protected $appends = ['file_url'];
+
     protected $casts = [
         'created_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'file'       => 'string',
     ];
+
+    protected function fileUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => $this->file ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->file) : null,
+        );
+    }
 }

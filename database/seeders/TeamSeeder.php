@@ -9,7 +9,6 @@ class TeamSeeder extends Seeder
 {
     public function run(): void
     {
-        // Hubungkan ke factory untuk membuat 5 tim
         \App\Models\Team::factory()->count(5)->create();
     }
 }

@@ -25,7 +25,7 @@ class EventFactory extends Factory
             'end_date'    => $endDate,
             'location'    => $this->faker->city() . ', ' . $this->faker->country(),
             'poster'      => null,
-            'created_by'  => User::inRandomOrder()->value('user_id'),
+            'created_by'  => User::where('role', 'admin')->inRandomOrder()->value('user_id') ?? 'ADM0000001',
             'status'      => $this->faker->randomElement(['upcoming', 'ongoing', 'completed', 'cancelled']),
             'created_at'  => now(),
             'updated_at'  => null,

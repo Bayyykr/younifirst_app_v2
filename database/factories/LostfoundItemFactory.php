@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\ItemStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -32,7 +31,7 @@ class LostfoundItemFactory extends Factory
             'description'  => $this->faker->paragraph(),
             'photo'        => null,
             'location'     => $this->faker->randomElement($locations),
-            'status_id'    => ItemStatus::inRandomOrder()->value('status_id'),
+            'status'       => $this->faker->randomElement(['lost', 'found', 'claimed']),
             'created_at'   => now(),
             'updated_at'   => null,
             'deleted_at'   => null,

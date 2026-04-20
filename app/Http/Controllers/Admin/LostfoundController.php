@@ -14,14 +14,14 @@ class LostfoundController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Calculate Stats
+        // 1. Calculate Stats using string enum status
         $stats = [
-            'found'    => LostfoundItem::where('status_id', 2)->count(),
-            'lost'     => LostfoundItem::where('status_id', 1)->count(),
-            'finished' => LostfoundItem::whereIn('status_id', [3, 4])->count(),
+            'found'    => LostfoundItem::where('status', 'found')->count(),
+            'lost'     => LostfoundItem::where('status', 'lost')->count(),
+            'claimed'  => LostfoundItem::where('status', 'claimed')->count(),
         ];
 
-        // 2. Fetch All Items for Client-side filtering (matches User Management pattern)
+        // 2. Fetch All Items for Client-side filtering
         $items = ViewLostfound::orderBy('created_at', 'desc')
             ->get()
             ->map(fn($item) => [
@@ -33,19 +33,18 @@ class LostfoundController extends Controller
                 'date'          => $item->created_at->format('d F Y'),
                 'reporter_name' => $item->reporter_name,
                 'reporter_nim'  => $item->reporter_nim ?? 'Mahasiswa',
-                'status_id'     => $item->status_id,
-                'status_label'  => match((int)$item->status_id) {
-                    1 => 'Hilang',
-                    2 => 'Ditemukan',
-                    3 => 'Dikembalikan',
-                    4 => 'Diklaim',
-                    default => 'Unknown'
+                'status'        => $item->status,
+                'status_label'  => match($item->status) {
+                    'lost'    => 'Hilang',
+                    'found'   => 'Ditemukan',
+                    'claimed' => 'Diklaim',
+                    default   => 'Unknown'
                 },
-                'status_class' => match((int)$item->status_id) {
-                    1 => 'status-danger',
-                    2 => 'status-success',
-                    3, 4 => 'status-warning',
-                    default => 'status-neutral'
+                'status_class' => match($item->status) {
+                    'lost'    => 'status-danger',
+                    'found'   => 'status-success',
+                    'claimed' => 'status-warning',
+                    default   => 'status-neutral'
                 }
             ]);
 

@@ -101,7 +101,7 @@ class TeamController extends Controller
         ]);
 
         $team->fill($validated);
-        $team->update_at = now(); // Model uses update_at
+        $team->updated_at = now();
         $team->save();
 
         return response()->json(['message' => 'Team updated successfully', 'data' => $team]);
@@ -113,7 +113,7 @@ class TeamController extends Controller
     public function destroy(string $team_id)
     {
         $team = Team::where('team_id', $team_id)->firstOrFail();
-        $team->delete();
+        $team->delete(); // SoftDeletes trait sets deleted_at automatically
 
         return response()->json(['message' => 'Team deleted successfully']);
     }

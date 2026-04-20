@@ -11,9 +11,9 @@ return new class extends Migration
         Schema::create('lostfound_items', function (Blueprint $table) {
             $table->char('lostfound_id', 10)->primary();
             $table->char('user_id', 10);
-            $table->string('item_name', 50);
+            $table->string('item_name', 150);
             $table->text('description');
-            $table->longBlob('photo')->nullable();
+            $table->string('photo', 255)->nullable();
             $table->string('location', 255);
             $table->integer('status_id');
             $table->timestamp('created_at')->nullable();

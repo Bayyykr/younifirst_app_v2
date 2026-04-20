@@ -23,8 +23,8 @@ class TeamFactory extends Factory
             'description'      => $this->faker->paragraph(),
             'max_member'       => $this->faker->numberBetween(3, 10),
             'created_at'       => now(),
-            'update_at'        => null,
-            'delete_at'        => null,
+            'updated_at'       => null,
+            'deleted_at'       => null,
         ];
     }
 }

@@ -18,6 +18,8 @@ class ViewEvent extends Model
 
     protected $guarded = ['*'];
 
+    protected $appends = ['poster_url'];
+
     protected $casts = [
         'start_date'  => 'datetime',
         'end_date'    => 'datetime',
@@ -25,5 +27,13 @@ class ViewEvent extends Model
         'updated_at'  => 'datetime',
         'deleted_at'  => 'datetime',
         'total_likes' => 'integer',
+        'poster'      => 'string',
     ];
+
+    protected function posterUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => $this->poster ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->poster) : null,
+        );
+    }
 }

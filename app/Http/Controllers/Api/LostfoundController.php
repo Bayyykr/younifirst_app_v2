@@ -9,6 +9,7 @@ use App\Models\Views\ViewLostfound;
 use App\Models\Views\ViewLostfoundComment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class LostfoundController extends Controller
 {
@@ -27,7 +28,11 @@ class LostfoundController extends Controller
                    ->orWhere('location', 'like', "%$q%");
             });
         }
-        if ($request->filled('status_id')) $query->where('status_id', $request->status_id);
+
+        // Filter by string enum status: lost | found | claimed
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
         $perPage = min((int) $request->input('per_page', 15), 100);
 
@@ -65,19 +70,25 @@ class LostfoundController extends Controller
             'user_id'     => 'required|exists:users,user_id',
             'item_name'   => 'required|string|max:50',
             'description' => 'required|string',
-            'photo'       => 'nullable|string',
+            'photo'       => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'location'    => 'required|string|max:255',
-            'status_id'   => 'required|exists:item_status,status_id',
+            'status'      => 'required|in:lost,found,claimed',
         ]);
 
         $item = new LostfoundItem();
         // Generate custom ID: LNF + 7 random characters (total 10)
         $item->lostfound_id = 'LNF' . strtoupper(Str::random(7));
-        $item->fill($validated);
+        $item->fill($request->except('photo'));
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('lostfound', 'public');
+            $item->photo = $path;
+        }
+
         $item->created_at = \Illuminate\Support\Carbon::now();
         $item->save();
 
-        return response()->json(['message' => 'Lost/Found item created successfully', 'data' => $item], 214);
+        return response()->json(['message' => 'Lost/Found item created successfully', 'data' => $item], 201);
     }
 
     /**
@@ -87,15 +98,33 @@ class LostfoundController extends Controller
     {
         $item = LostfoundItem::where('lostfound_id', $lostfound_id)->firstOrFail();
 
-        $validated = $request->validate([
+        $validatedData = [
             'item_name'   => 'sometimes|required|string|max:50',
             'description' => 'sometimes|required|string',
-            'photo'       => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'location'    => 'sometimes|required|string|max:255',
-            'status_id'   => 'sometimes|required|exists:item_status,status_id',
-        ]);
+            'status'      => 'sometimes|required|in:lost,found,claimed',
+        ];
 
-        $item->fill($validated);
+        // Only validate photo as image if it's a file upload
+        if ($request->hasFile('photo')) {
+            $validatedData['photo'] = 'image|mimes:jpeg,png,jpg|max:5120';
+        } else {
+            $validatedData['photo'] = 'nullable';
+        }
+
+        $validated = $request->validate($validatedData);
+
+        $item->fill($request->except('photo'));
+
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($item->photo) {
+                Storage::disk('public')->delete($item->photo);
+            }
+            $path = $request->file('photo')->store('lostfound', 'public');
+            $item->photo = $path;
+        }
+
         $item->updated_at = now();
         $item->save();
 
@@ -104,15 +133,12 @@ class LostfoundController extends Controller
 
     /**
      * DELETE /api/lostfound/{lostfound_id}
+     * Soft-deletes the item (sets deleted_at, excluded from view_lostfound).
      */
     public function destroy(string $lostfound_id)
     {
         $item = LostfoundItem::where('lostfound_id', $lostfound_id)->firstOrFail();
-        $item->delete();
-
-        // Manual soft delete logic if not using SoftDeletes trait
-        $item->deleted_at = now();
-        $item->save();
+        $item->delete(); // SoftDeletes trait sets deleted_at automatically
 
         return response()->json(['message' => 'Lost/Found item deleted successfully']);
     }

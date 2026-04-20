@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('announcements', function (Blueprint $table) {
             $table->char('announcement_id', 10)->primary();
-            $table->string('title', 100);
+            $table->string('title', 150);
             $table->text('content');
-            $table->binary('file')->nullable();
+            $table->string('file', 255)->nullable();
             $table->char('created_by', 10);
             $table->timestamp('created_at')->useCurrent();
 

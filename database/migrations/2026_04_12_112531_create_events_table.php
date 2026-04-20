@@ -10,12 +10,12 @@ return new class extends Migration {
         Schema::create('events', function (Blueprint $table) {
             $table->char('event_id', 10)->primary();
             $table->integer('category_id');
-            $table->string('title', 50);
+            $table->string('title', 150);
             $table->text('description');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->string('location', 255);
-            $table->longBlob('poster')->nullable();
+            $table->string('poster', 255)->nullable();
             $table->char('created_by', 10);
             $table->enum('status', ['upcoming', 'ongoing', 'completed', 'cancelled'])->default('upcoming');
             $table->timestamp('created_at')->nullable();

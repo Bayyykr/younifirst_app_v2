@@ -23,9 +23,9 @@
         </div>
         <div class="stat-card">
             <div class="stat-content">
-                <span class="stat-label">Ditandai Selesai</span>
-                <div class="stat-value text-warning">{{ $stats['finished'] }}</div>
-                <span class="stat-sublabel">Total items resolved</span>
+                <span class="stat-label">Sudah Diklaim</span>
+                <div class="stat-value text-warning">{{ $stats['claimed'] }}</div>
+                <span class="stat-sublabel">Total items claimed</span>
             </div>
         </div>
     </div>
@@ -40,10 +40,9 @@
             <!-- Status Dropdown (Custom to match your User style if wanted, or plain select) -->
             <select x-model="statusFilter" class="form-select status-filter">
                 <option value="all">Semua Status</option>
-                <option value="1">Hilang</option>
-                <option value="2">Ditemukan</option>
-                <option value="3">Dikembalikan</option>
-                <option value="4">Diklaim</option>
+                <option value="lost">Hilang</option>
+                <option value="found">Ditemukan</option>
+                <option value="claimed">Diklaim</option>
             </select>
             <button class="btn btn-primary">
                 <i data-lucide="plus" class="icon-sm"></i>
@@ -434,7 +433,7 @@
                         item.reporter_name.toLowerCase().includes(q) || 
                         item.location.toLowerCase().includes(q);
                         
-                    let matchesStatus = s === 'all' || item.status_id == s;
+                    let matchesStatus = s === 'all' || item.status === s;
                     
                     return matchesSearch && matchesStatus;
                 });
