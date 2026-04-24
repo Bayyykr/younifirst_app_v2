@@ -22,4 +22,17 @@ class ViewUser extends Model
     protected $casts = [
         'created_at' => 'datetime',
     ];
+
+    public function suspensions()
+    {
+        return $this->hasMany(\App\Models\UserSuspension::class, 'user_id', 'user_id');
+    }
+
+    public function getActiveSuspensionAttribute()
+    {
+        if ($this->status !== 'suspended') return null;
+        return $this->suspensions()->latest()->first();
+    }
+
+    protected $appends = ['active_suspension'];
 }

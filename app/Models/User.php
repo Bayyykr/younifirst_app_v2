@@ -53,6 +53,19 @@ class User extends Authenticatable
         return $this->hasMany(LostfoundItem::class, 'user_id', 'user_id');
     }
 
+    public function suspensions()
+    {
+        return $this->hasMany(UserSuspension::class, 'user_id', 'user_id');
+    }
+
+    public function getActiveSuspensionAttribute()
+    {
+        if ($this->status !== 'suspended') return null;
+        return $this->suspensions()->latest()->first();
+    }
+
+    protected $appends = ['active_suspension'];
+
     public function lostfoundComments()
     {
         return $this->hasMany(LostfoundComment::class, 'user_id', 'user_id');
