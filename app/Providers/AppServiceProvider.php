@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (str_contains(config('app.url'), 'https://') || str_contains(request()->header('host'), 'ngrok-free')) {
+        if (app()->environment('production') || str_contains(request()->header('host'), 'ngrok-free')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
     }

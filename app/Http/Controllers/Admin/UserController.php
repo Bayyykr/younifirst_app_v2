@@ -13,13 +13,15 @@ class UserController extends Controller
         $users = ViewUser::orderBy('created_at', 'desc')
             ->get()
             ->map(fn($user) => [
-                'id'           => $user->user_id,
-                'name'         => $user->name,
-                'email'        => $user->email,
-                'nim'          => $user->nim  ?? '-',
-                'prodi'        => $user->prodi ?? '-',
-                'joined'       => $user->created_at->format('d M Y'),
-                'status'       => strtolower($user->status),
+                'id' => $user->user_id,
+                'user_id' => $user->user_id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'nim' => $user->nim ?? '-',
+                'prodi' => $user->prodi ?? '-',
+                'joined' => $user->created_at->format('d M Y'),
+                'status' => strtolower($user->status),
+                'role' => $user->role,
                 'encoded_name' => urlencode($user->name),
             ]);
 

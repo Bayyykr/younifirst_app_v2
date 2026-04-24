@@ -48,7 +48,7 @@
                                 <div class="pending-card-left">
                                     <div class="pending-poster">
                                         @if($event->poster)
-                                            <img src="{{ $event->poster }}" alt="{{ $event->title }}">
+                                            <img src="{{ $event->poster_url }}" alt="{{ $event->title }}">
                                         @else
                                             <div class="poster-placeholder">
                                                 <i data-lucide="image"></i>
@@ -268,7 +268,7 @@
                             <div class="req-card-main">
                                 <div class="req-poster-wrap">
                                     @if($event->poster)
-                                        <img src="{{ $event->poster }}" alt="{{ $event->title }}">
+                                        <img src="{{ $event->poster_url }}" alt="{{ $event->title }}">
                                     @else
                                         <div class="req-poster-placeholder">
                                             <i data-lucide="image" style="width: 32px;"></i>

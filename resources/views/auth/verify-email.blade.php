@@ -1,68 +1,31 @@
-@extends('layouts.authLayout')
-
-@section('title', 'Periksa Email')
-
-@section('image', asset('images/auth/periksa_email.png'))
-
-@section('content')
-    <a href="{{ route('password.request') }}" class="back-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
-    </a>
-
-    <div class="form-header">
-        <h1>Periksa Email</h1>
-        <p>Masukkan kode verifikasi yang dikirim ke <br><b>e41240238@student.polije.ac.id</b></p>
+<x-guest-layout>
+    <div class="mb-4 text-sm text-gray-600">
+        {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
     </div>
 
-    <form action="{{ route('verification.verify') }}" method="POST" id="otp-form">
-        @csrf
-        <div class="otp-container">
-            <input type="text" class="otp-input" maxlength="1" pattern="\d*" inputmode="numeric">
-            <input type="text" class="otp-input" maxlength="1" pattern="\d*" inputmode="numeric">
-            <input type="text" class="otp-input" maxlength="1" pattern="\d*" inputmode="numeric">
-            <input type="text" class="otp-input" maxlength="1" pattern="\d*" inputmode="numeric">
-            <input type="hidden" name="code" id="verification-code">
+    @if (session('status') == 'verification-link-sent')
+        <div class="mb-4 font-medium text-sm text-green-600">
+            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
         </div>
+    @endif
 
-        <div class="resend-section">
-            <p class="timer-text">Kirim Ulang Kode ( 25s )</p>
-            <a href="#" class="resend-link">Tidak menerima kode?</a>
-        </div>
-    </form>
-@endsection
+    <div class="mt-4 flex items-center justify-between">
+        <form method="POST" action="{{ route('verification.send') }}">
+            @csrf
 
-@push('scripts')
-<script>
-    const inputs = document.querySelectorAll('.otp-input');
-    const hiddenInput = document.getElementById('verification-code');
+            <div>
+                <x-primary-button>
+                    {{ __('Resend Verification Email') }}
+                </x-primary-button>
+            </div>
+        </form>
 
-    inputs.forEach((input, index) => {
-        input.addEventListener('keyup', (e) => {
-            if (e.key >= 0 && e.key <= 9) {
-                if (index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                }
-            } else if (e.key === 'Backspace') {
-                if (index > 0) {
-                    inputs[index - 1].focus();
-                }
-            }
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
 
-            // Update hidden input
-            let code = "";
-            inputs.forEach(input => code += input.value);
-            hiddenInput.value = code;
-
-            // Auto submit if 4 digits entered
-            if (code.length === 4) {
-                window.location.href = "{{ route('password.reset') }}";
-            }
-        });
-
-        // Prevent non-numeric input
-        input.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-        });
-    });
-</script>
-@endpush
+            <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                {{ __('Log Out') }}
+            </button>
+        </form>
+    </div>
+</x-guest-layout>

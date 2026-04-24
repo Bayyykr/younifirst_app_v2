@@ -29,8 +29,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    Route::post('/logout', [AuthController::class, 'logout']);
-
     // ── USERS ────────────────────────────────────────────────
     Route::prefix('users')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
@@ -39,6 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{user_id}', 'update');
         Route::delete('/{user_id}', 'destroy');
     });
+
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     // ── EVENTS ───────────────────────────────────────────────
     Route::prefix('events')->controller(EventController::class)->group(function () {

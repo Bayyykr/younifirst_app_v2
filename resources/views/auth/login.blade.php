@@ -10,19 +10,26 @@
         <p>Kelola sistem Younifirst</p>
     </div>
 
-    <form action="{{ route('login.post') }}" method="POST">
+    <form action="{{ route('login') }}" method="POST">
         @csrf
+
+        @if ($errors->any())
+            <div class="error-summary" style="color: #dc2626; background: #fee2e2; padding: 0.75rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.875rem;">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         <div class="form-group">
             <label for="email">Email SSO Karyawan</label>
             <div class="input-wrapper">
-                <input type="email" id="email" name="email" placeholder="Masukkan email SSO Anda" required>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="Masukkan email SSO Anda" required autocomplete="username" autofocus>
             </div>
         </div>
 
         <div class="form-group">
             <label for="password">Kata Sandi</label>
             <div class="input-wrapper">
-                <input type="password" id="password" name="password" placeholder="Masukkan kata sandi Anda" required>
+                <input type="password" id="password" name="password" placeholder="Masukkan kata sandi Anda" required autocomplete="current-password">
                 <div class="password-toggle" id="togglePassword">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </div>
@@ -34,7 +41,9 @@
                 <input type="checkbox" name="remember">
                 <span>Ingat Saya</span>
             </label>
-            <a href="{{ route('password.request') }}" class="forgot-password">Lupa Kata Sandi?</a>
+            @if (Route::has('password.request'))
+                <a href="{{ route('password.request') }}" class="forgot-password">Lupa Kata Sandi?</a>
+            @endif
         </div>
 
         <button type="submit" class="btn-submit">Masuk</button>

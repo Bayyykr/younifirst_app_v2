@@ -8,6 +8,7 @@ use App\Models\Views\ViewUser;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -79,17 +80,24 @@ class UserController extends Controller
             ], 500);
         }
 
-        // 2. Create user in MySQL
-        $user = new User();
-        // Generate custom ID: USR + 7 random characters (total 10)
-        $user->user_id = 'USR' . strtoupper(Str::random(7));
-        $user->fill($validated);
-        $user->password = Hash::make($validated['password']);
-        $user->firebase_uid = $firebaseUid; // Simpan UID Firebase
-        $user->created_at = now();
-        $user->save();
+        try {
+            // 2. Create user in MySQL
+            $user = new User();
+            // Generate custom ID: USR + 7 random characters (total 10)
+            $user->user_id = 'USR' . strtoupper(Str::random(7));
+            $user->fill($validated);
+            $user->password = Hash::make($validated['password']);
+            $user->firebase_uid = $firebaseUid;
+            $user->created_at = now();
+            $user->save();
 
-        return response()->json(['message' => 'User created successfully', 'data' => $user], 201);
+            return response()->json(['message' => 'User created successfully', 'data' => $user], 201);
+        } catch (\Exception $e) {
+            Log::error('MySQL User Creation Failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Gagal menyimpan user ke database. Silakan periksa log server.'
+            ], 500);
+        }
     }
 
     /**
@@ -102,15 +110,29 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'     => 'sometimes|required|string|max:255',
             'email'    => 'sometimes|required|email|unique:users,email,' . $user->user_id . ',user_id',
-            'password' => 'sometimes|required|string|min:8',
             'role'     => 'sometimes|required|in:admin,user',
             'nim'      => 'nullable|string|max:15',
             'prodi'    => 'nullable|string|max:50',
-            'status'   => 'sometimes|required|in:active,inactive,suspended,blocked',
+            // Suspension fields
+            'status'   => 'sometimes|string|in:active,suspended,blocked',
+            'duration' => 'required_if:status,suspended|string',
+            'reason'   => 'required_if:status,suspended|string',
+            'notes'    => 'nullable|string',
         ]);
 
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+        if ($request->status === 'suspended') {
+            $endsAt = null;
+            if ($request->duration !== 'custom' && is_numeric($request->duration)) {
+                $endsAt = now()->addDays((int) $request->duration);
+            }
+
+            \App\Models\UserSuspension::create([
+                'user_id' => $user->user_id,
+                'duration' => $request->duration,
+                'reason'   => $request->reason,
+                'internal_notes' => $request->notes,
+                'ends_at'  => $endsAt,
+            ]);
         }
 
         $user->update($validated);
@@ -118,14 +140,4 @@ class UserController extends Controller
         return response()->json(['message' => 'User updated successfully', 'data' => $user]);
     }
 
-    /**
-     * DELETE /api/users/{user_id}
-     */
-    public function destroy(string $user_id)
-    {
-        $user = User::where('user_id', $user_id)->firstOrFail();
-        $user->delete();
-
-        return response()->json(['message' => 'User deleted successfully']);
-    }
 }

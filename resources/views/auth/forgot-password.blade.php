@@ -1,26 +1,25 @@
-@extends('layouts.authLayout')
-
-@section('title', 'Lupa Kata Sandi')
-
-@section('image', asset('images/auth/lupa_password.png'))
-
-@section('content')
-    <a href="{{ route('login') }}" class="back-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
-    </a>
-
-    <div class="form-header">
-        <h1>Lupa Kata Sandi?</h1>
-        <p>Jangan khawatir! Masukkan email SSO Anda untuk menerima instruksi reset kata sandi.</p>
+<x-guest-layout>
+    <div class="mb-4 text-sm text-gray-600">
+        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
     </div>
 
-    <form action="{{ route('password.email') }}" method="POST" onsubmit="event.preventDefault(); window.location.href='{{ route('verification.notice') }}';">
+    <!-- Session Status -->
+    <x-auth-session-status class="mb-4" :status="session('status')" />
+
+    <form method="POST" action="{{ route('password.email') }}">
         @csrf
-        <div class="form-group">
-            <label for="email">Email SSO Karyawan</label>
-            <input type="email" id="email" name="email" placeholder="Masukkan email SSO Anda" required>
+
+        <!-- Email Address -->
+        <div>
+            <x-input-label for="email" :value="__('Email')" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
+            <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <button type="submit" class="btn-submit">Kirim</button>
+        <div class="flex items-center justify-end mt-4">
+            <x-primary-button>
+                {{ __('Email Password Reset Link') }}
+            </x-primary-button>
+        </div>
     </form>
-@endsection
+</x-guest-layout>

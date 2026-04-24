@@ -67,7 +67,7 @@ class EventController extends Controller
             'creator_name'  => $event->creator->name ?? 'System',
             'likes_count'   => $event->likes_count,
             'status'        => $event->status,
-            'poster'        => $event->poster,
+            'poster'        => $event->poster_url,
             'location'      => $event->location,
         ]);
 

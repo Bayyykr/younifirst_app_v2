@@ -842,7 +842,7 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px;
+    padding: 12px;
     border: 1px solid #F1F5F9;
     border-radius: 12px;
     background: #FAFBFC;
@@ -859,8 +859,8 @@ body {
 }
 
 .pending-poster {
-    width: 72px;
-    height: 72px;
+    width: 60px;
+    height: 60px;
     border-radius: 10px;
     overflow: hidden;
     background: #F1F5F9;
@@ -873,8 +873,8 @@ body {
 }
 
 .poster-placeholder {
-    width: 72px;
-    height: 72px;
+    width: 60px;
+    height: 60px;
     background: #F1F5F9;
     border-radius: 10px;
     display: flex;
@@ -1029,7 +1029,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 24px;
     margin-bottom: 16px;
     flex-wrap: wrap;
 }
@@ -1461,7 +1461,7 @@ body {
 
 .requests-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
     gap: 20px;
 }
 
@@ -1492,13 +1492,13 @@ body {
 .req-card-main {
     display: flex;
     gap: 16px;
-    padding: 20px 20px 0;
+    padding: 16px 16px 0;
 }
 
 .req-poster-wrap {
     flex-shrink: 0;
-    width: 120px;
-    height: 140px;
+    width: 100px;
+    height: 120px;
     border-radius: 10px;
     overflow: hidden;
     background: #F1F5F9;

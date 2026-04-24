@@ -6,8 +6,8 @@ use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\LostfoundController as AdminLostfoundController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────
@@ -17,28 +17,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
 // ─────────────────────────────────────────────────────────────
-//  Auth Routes
-// ─────────────────────────────────────────────────────────────
-
-Route::controller(LoginController::class)->group(function () {
-    Route::get('/login', 'showLoginForm')->name('login');
-    Route::post('/login', 'login')->name('login.post');
-
-    Route::get('/forgot-password', 'showForgotPasswordForm')->name('password.request');
-    Route::post('/forgot-password', 'sendResetLinkEmail')->name('password.email');
-
-    Route::get('/verify-email', 'showVerifyEmailForm')->name('verification.notice');
-    Route::post('/verify-email', 'verifyEmail')->name('verification.verify');
-
-    Route::get('/reset-password', 'showResetPasswordForm')->name('password.reset');
-    Route::post('/reset-password', 'resetPassword')->name('password.update');
-});
-
-// ─────────────────────────────────────────────────────────────
 //  Admin Routes
 // ─────────────────────────────────────────────────────────────
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [UserController::class, 'index'])->name('users');
     Route::get('/teams', [TeamController::class, 'index'])->name('teams');
@@ -48,3 +30,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/events/{event_id}/respond', [EventController::class, 'respond'])->name('events.respond');
     Route::delete('/events/{event_id}', [EventController::class, 'destroy'])->name('events.destroy');
 });
+
+// ─────────────────────────────────────────────────────────────
+//  Profile Routes (Breeze)
+// ─────────────────────────────────────────────────────────────
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
+
+
