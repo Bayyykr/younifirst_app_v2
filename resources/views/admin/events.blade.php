@@ -79,7 +79,7 @@
 
                                 <div class="pending-card-right">
                                     <button class="btn btn-action-outline"
-                                        @click="openViewModal({{ json_encode(['id' => $event->event_id, 'title' => $event->title, 'category_name' => $event->category->name_category, 'category_id' => $event->category_id, 'start_date' => $event->start_date->format('d M Y'), 'start_date_raw' => $event->start_date->format('Y-m-d'), 'start_time_raw' => $event->start_date->format('H:i'), 'end_date' => $event->end_date->format('d M Y'), 'end_date_raw' => $event->end_date->format('Y-m-d'), 'end_time_raw' => $event->end_date->format('H:i'), 'location' => $event->location, 'description' => $event->description, 'creator_name' => $event->creator->name ?? 'User', 'status' => $event->status, 'poster' => $event->poster_url, 'likes_count' => 0]) }}">
+                                        @click="openViewModal(allEvents.find(e => e.id === '{{ $event->event_id }}'))">
                                         <i data-lucide="eye" style="width: 16px;"></i> Lihat Detail
                                     </button>
                                     <button class="btn btn-action-success"
@@ -316,7 +316,7 @@
 
                             <div class="req-card-actions">
                                 <button class="req-btn-secondary"
-                                    @click="openViewModal({{ json_encode(['id' => $event->event_id, 'title' => $event->title, 'category_name' => $event->category->name_category, 'category_id' => $event->category_id, 'start_date' => $event->start_date->format('d M Y'), 'start_date_raw' => $event->start_date->format('Y-m-d'), 'start_time_raw' => $event->start_date->format('H:i'), 'end_date' => $event->end_date->format('d M Y'), 'end_date_raw' => $event->end_date->format('Y-m-d'), 'end_time_raw' => $event->end_date->format('H:i'), 'location' => $event->location, 'description' => $event->description, 'creator_name' => $event->creator->name ?? 'User', 'status' => $event->status, 'poster' => $event->poster_url, 'likes_count' => 0]) }}">
+                                    @click="openViewModal(allEvents.find(e => e.id === '{{ $event->event_id }}'))">
                                     <i data-lucide="eye" style="width: 16px;"></i> Full Details
                                 </button>
                                 <div class="req-decision-btns">
@@ -735,6 +735,167 @@
             transform: translateX(20px);
             opacity: 0;
         }
+        .pending-section {
+            margin: 1.5rem 0;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .pending-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .pending-section .section-header h3 {
+            font-size: 1.25rem;
+            color: #1E293B;
+            font-weight: 700;
+        }
+
+        .pending-section .view-all {
+            color: #3B82F6;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .pending-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .pending-card {
+            display: flex;
+            background: #FEF3E2;
+            border: 1px solid #FFEDD5;
+            border-radius: 12px;
+            padding: 12px 16px;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .pending-poster {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .pending-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .poster-placeholder {
+            width: 100%;
+            height: 100%;
+            background: #F1F5F9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94A3B8;
+        }
+
+        .pending-card-mid {
+            flex-grow: 1;
+        }
+
+        .info-badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .badge-category {
+            background: #DBEAFE;
+            color: #2563EB;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-status-pending {
+            background: #FFEDD5;
+            color: #F97316;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .event-title {
+            font-size: 1rem;
+            color: #1E293B;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .event-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748B;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+
+        .event-submitter {
+            font-size: 0.8rem;
+            color: #64748B;
+        }
+
+        .submitter-name {
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .pending-card-right {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 130px;
+        }
+
+        .pending-card-right .btn {
+            background: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-action-outline {
+            border-color: #E2E8F0 !important;
+            color: #475569 !important;
+        }
+
+        .btn-action-success {
+            border-color: #10B981 !important;
+            color: #10B981 !important;
+        }
+
+        .btn-action-danger {
+            border-color: #EF4444 !important;
+            color: #EF4444 !important;
+        }
+
+        .btn-action-outline:hover { background: #F8FAFC; }
+        .btn-action-success:hover { background: #F0FDF4; }
+        .btn-action-danger:hover { background: #FEF2F2; }
+
     </style>
 @endpush
 
@@ -754,6 +915,7 @@
                 newPosterPreview: null,
                 isEditMode: false,
                 isViewOnly: false,
+                selectedEvent: null,
                 showDeleteConfirm: false,
                 itemToDelete: null,
                 // Respond (approve/reject) state
@@ -787,6 +949,7 @@
                 },
 
                 openViewModal(event) {
+                    console.log('Opening View Modal for event:', event);
                     this.isEditMode = true;
                     this.isViewOnly = true;
                     this.selectedEvent = event;
