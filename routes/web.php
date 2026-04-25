@@ -27,6 +27,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/announcement', [AnnouncementController::class, 'index'])->name('announcement');
     Route::get('/lostfound', [AdminLostfoundController::class, 'index'])->name('lostfound');
     Route::get('/events', [EventController::class, 'index'])->name('events');
+    Route::post('/events', [EventController::class, 'store'])->name('events.store');
+    Route::put('/events/{event_id}', [EventController::class, 'update'])->name('events.update');
     Route::post('/events/{event_id}/respond', [EventController::class, 'respond'])->name('events.respond');
     Route::delete('/events/{event_id}', [EventController::class, 'destroy'])->name('events.destroy');
 });

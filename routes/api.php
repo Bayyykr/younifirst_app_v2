@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── USERS ────────────────────────────────────────────────
     Route::prefix('users')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
+        Route::post('/fcm-token', 'updateFcmToken');
         Route::get('/{user_id}', 'show');
         Route::post('/add', 'store');
         Route::put('/{user_id}', 'update');

@@ -28,6 +28,7 @@ class AuthController extends Controller
             'email'       => 'required|email',
             'password'    => 'required|string',
             'device_name' => 'nullable|string',
+            'fcm_token'   => 'nullable|string',
         ]);
 
         // 1. Autentikasi ke Firebase menggunakan REST API
@@ -64,6 +65,10 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Akun Anda sedang dinonaktifkan.',
             ], 403);
+        }
+
+        if ($request->filled('fcm_token')) {
+            $user->update(['fcm_token' => $request->fcm_token]);
         }
 
         // 3. Buat Sanctum Bearer Token

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 class FirebaseService
 {
     protected $auth;
+    protected $messaging;
     protected string $apiKey;
 
     public function __construct()
@@ -23,6 +24,7 @@ class FirebaseService
                 ->withServiceAccount($credentialsPath);
 
             $this->auth = $factory->createAuth();
+            $this->messaging = $factory->createMessaging();
         } catch (\Exception $e) {
             Log::error('Firebase Initialization Failed: ' . $e->getMessage());
         }
@@ -111,6 +113,26 @@ class FirebaseService
             return $this->auth->getUser($uid);
         } catch (\Exception $e) {
             return null;
+        }
+    }
+
+    /**
+     * Send Push Notification via FCM
+     */
+    public function sendNotification(string $fcmToken, string $title, string $body, array $data = [])
+    {
+        try {
+            $notification = \Kreait\Firebase\Messaging\Notification::create($title, $body);
+            $message = \Kreait\Firebase\Messaging\CloudMessage::withTarget('token', $fcmToken)
+                ->withNotification($notification)
+                ->withData($data);
+
+            $this->messaging->send($message);
+            Log::info("FCM Notification sent to token: {$fcmToken}");
+            return true;
+        } catch (\Exception $e) {
+            Log::error('FCM Notification Failed: ' . $e->getMessage());
+            return false;
         }
     }
 }

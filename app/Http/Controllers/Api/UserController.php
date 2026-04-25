@@ -38,7 +38,7 @@ class UserController extends Controller
         if ($request->filled('role'))   $query->where('role', $request->role);
         if ($request->filled('status')) $query->where('status', $request->status);
 
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->input('per_page', 15), 100);
 
         return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
     }
@@ -140,4 +140,19 @@ class UserController extends Controller
         return response()->json(['message' => 'User updated successfully', 'data' => $user]);
     }
 
+    /**
+     * POST /api/users/fcm-token
+     * Used for refreshing FCM token in the background.
+     */
+    public function updateFcmToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $user->update(['fcm_token' => $request->fcm_token]);
+
+        return response()->json(['message' => 'FCM token updated successfully']);
+    }
 }

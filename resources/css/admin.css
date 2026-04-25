@@ -22,11 +22,14 @@ body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-main);
     color: var(--text-main);
+    overflow-x: hidden;
 }
 
 .admin-layout {
     display: flex;
     min-height: 100vh;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 /* Sidebar Styling */
@@ -165,11 +168,15 @@ body {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: calc(100% - var(--sidebar-width));
+    overflow-x: hidden;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .main-wrapper.expanded {
     margin-left: var(--sidebar-collapsed-width);
+    max-width: calc(100% - var(--sidebar-collapsed-width));
 }
 
 /* Topbar Styling */
@@ -264,6 +271,8 @@ body {
 .content {
     padding: 32px;
     flex: 1;
+    min-width: 0;
+    overflow-x: hidden;
 }
 
 /* User Management Dashboard */
@@ -329,7 +338,7 @@ body {
 .search-wrapper {
     position: relative;
     flex: 1;
-    min-width: 300px;
+    min-width: 0;
     max-width: 600px;
     display: flex;
     align-items: center;
@@ -738,9 +747,18 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    EVENT MANAGEMENT – Color Utilities
 ═══════════════════════════════════════════════════════════════ */
-.text-blue  { color: #3B82F6 !important; }
-.text-green { color: #10B981 !important; }
-.text-red   { color: #EF4444 !important; }
+.text-blue {
+    color: #3B82F6 !important;
+}
+
+.text-green {
+    color: #10B981 !important;
+}
+
+.text-red {
+    color: #EF4444 !important;
+}
+
 /* .text-orange already defined above */
 
 /* ═══════════════════════════════════════════════════════════════
@@ -750,6 +768,9 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0;
+    min-width: 0;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 .stats-grid {
@@ -771,7 +792,7 @@ body {
 }
 
 .stat-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
 }
 
 .stat-label {
@@ -851,7 +872,7 @@ body {
 
 .pending-card:hover {
     border-color: #CBD5E1;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .pending-card-left {
@@ -1128,8 +1149,12 @@ body {
     background: #fff;
     border: 1px solid #E2E8F0;
     border-radius: 16px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     margin-bottom: 20px;
+    /* Prevent the table from pushing the page width */
+    min-width: 0;
+    width: 100%;
 }
 
 /* .premium-table already partially styled in blade @push */
@@ -1461,7 +1486,7 @@ body {
 
 .requests-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
     gap: 20px;
 }
 
@@ -1475,7 +1500,7 @@ body {
 }
 
 .req-card:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
 }
 
@@ -1529,7 +1554,7 @@ body {
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 6px;
-    background: rgba(255,255,255,0.92);
+    background: rgba(255, 255, 255, 0.92);
     color: #2563EB;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -1785,7 +1810,7 @@ body {
     max-width: 1000px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
 }
 
 .modal-header {
@@ -1834,10 +1859,11 @@ body {
 }
 
 .modal-left {
-    flex: 0 0 340px;
+    flex: 0 0 clamp(240px, 30%, 340px);
     background: #F8FAFC;
     padding: 24px 28px;
     border-right: 1px solid #F1F5F9;
+    min-width: 0;
 }
 
 .modal-right {
@@ -1943,7 +1969,7 @@ body {
     background: #F8FAFC;
 }
 
-.category-chip input:checked + .chip-content {
+.category-chip input:checked+.chip-content {
     background: #3B82F6;
     border-color: #3B82F6;
     color: #fff;
@@ -2149,11 +2175,13 @@ body {
     .modal-layout {
         flex-direction: column;
     }
+
     .modal-left {
         flex: none;
         border-right: none;
         border-bottom: 1px solid #F1F5F9;
     }
+
     .poster-preview-area {
         aspect-ratio: 16/9;
     }
@@ -2302,6 +2330,7 @@ body {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
     .requests-grid {
         grid-template-columns: 1fr;
     }
@@ -2311,23 +2340,117 @@ body {
     .stats-grid {
         grid-template-columns: 1fr 1fr;
     }
+
     .pending-card {
         flex-direction: column;
         align-items: flex-start;
     }
+
     .pending-card-right {
         align-items: flex-start;
         flex-direction: row;
         flex-wrap: wrap;
     }
+
     .form-row-grid {
         grid-template-columns: 1fr;
     }
+
     .main-toolbar {
         flex-direction: column;
         align-items: stretch;
     }
+
     .toolbar-left {
         flex-direction: column;
     }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPOND (APPROVE / REJECT) CONFIRMATION MODAL
+═══════════════════════════════════════════════════════════════ */
+.respond-confirm-modal {
+    max-width: 420px !important;
+    text-align: center;
+    padding: 36px !important;
+}
+
+.respond-confirm-modal h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 12px;
+}
+
+.respond-confirm-modal p {
+    font-size: 0.875rem;
+    color: #64748B;
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+.respond-icon-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.respond-icon-circle i,
+.respond-icon-circle svg {
+    width: 32px;
+    height: 32px;
+}
+
+.respond-approve-circle {
+    background: #DCFCE7;
+    color: #16A34A;
+}
+
+.respond-reject-circle {
+    background: #FFF7ED;
+    color: #EA580C;
+}
+
+/* Approve solid button */
+.btn-approve-solid {
+    background: #10B981;
+    color: white;
+    font-weight: 600;
+}
+
+.btn-approve-solid:hover:not(:disabled) {
+    background: #059669;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+/* Disabled state for all action buttons */
+.btn:disabled,
+.btn-approve-solid:disabled,
+.btn-danger-solid:disabled,
+.btn-secondary-gray:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Loading spinner inside buttons */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }

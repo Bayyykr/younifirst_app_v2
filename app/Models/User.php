@@ -19,7 +19,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'user_id', 'firebase_uid', 'name', 'email', 'password', 'role',
-        'nim', 'prodi', 'photo', 'status', 'created_at',
+        'nim', 'prodi', 'photo', 'status', 'fcm_token', 'created_at',
     ];
 
     protected $hidden = ['password'];
