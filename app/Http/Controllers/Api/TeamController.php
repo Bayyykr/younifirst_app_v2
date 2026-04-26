@@ -17,7 +17,7 @@ class TeamController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ViewTeam::query();
+        $query = ViewTeam::where('status', 'approved');
 
         if ($request->filled('search')) {
             $q = $request->search;
@@ -126,6 +126,10 @@ class TeamController extends Controller
         $user = $request->user();
         
         $team = Team::where('team_id', $team_id)->firstOrFail();
+
+        if ($team->status !== 'approved') {
+            return response()->json(['message' => 'You cannot join a team that is not yet approved by admin'], 422);
+        }
 
         $viewTeam = ViewTeam::where('team_id', $team_id)->first();
         if ($viewTeam && $viewTeam->current_member_count >= $team->max_member) {

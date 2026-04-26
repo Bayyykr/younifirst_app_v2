@@ -24,6 +24,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [UserController::class, 'index'])->name('users');
     Route::get('/teams', [TeamController::class, 'index'])->name('teams');
+    Route::post('/teams/{member_id}/respond', [TeamController::class, 'respond'])->name('teams.respond');
+    Route::delete('/teams/{team_id}', [TeamController::class, 'destroy'])->name('teams.destroy');
     Route::get('/announcement', [AnnouncementController::class, 'index'])->name('announcement');
     Route::get('/lostfound', [AdminLostfoundController::class, 'index'])->name('lostfound');
     Route::get('/events', [EventController::class, 'index'])->name('events');

@@ -22,7 +22,7 @@ class Team extends Model
 
     protected $fillable = [
         'team_id', 'team_name', 'competition_name',
-        'description', 'max_member', 'created_at', 'updated_at',
+        'description', 'max_member', 'status', 'created_at', 'updated_at',
     ];
 
     protected $casts = [
