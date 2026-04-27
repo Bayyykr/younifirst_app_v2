@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────
 //  Public Routes
-// ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
@@ -28,6 +28,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::delete('/teams/{team_id}', [TeamController::class, 'destroy'])->name('teams.destroy');
     Route::get('/announcement', [AnnouncementController::class, 'index'])->name('announcement');
     Route::get('/lostfound', [AdminLostfoundController::class, 'index'])->name('lostfound');
+    Route::post('/lostfound', [AdminLostfoundController::class, 'store'])->name('lostfound.store');
+    Route::post('/lostfound/{lostfound_id}/resolve', [AdminLostfoundController::class, 'resolve'])->name('lostfound.resolve');
+    Route::delete('/lostfound/{lostfound_id}', [AdminLostfoundController::class, 'destroy'])->name('lostfound.destroy');
     Route::get('/events', [EventController::class, 'index'])->name('events');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
     Route::put('/events/{event_id}', [EventController::class, 'update'])->name('events.update');
