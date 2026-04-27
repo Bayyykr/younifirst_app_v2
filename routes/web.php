@@ -27,6 +27,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/teams/{member_id}/respond', [TeamController::class, 'respond'])->name('teams.respond');
     Route::delete('/teams/{team_id}', [TeamController::class, 'destroy'])->name('teams.destroy');
     Route::get('/announcement', [AnnouncementController::class, 'index'])->name('announcement');
+    Route::post('/announcement', [AnnouncementController::class, 'store'])->name('announcement.store');
+    Route::put('/announcement/{announcement_id}', [AnnouncementController::class, 'update'])->name('announcement.update');
+    Route::delete('/announcement/{announcement_id}', [AnnouncementController::class, 'destroy'])->name('announcement.destroy');
     Route::get('/lostfound', [AdminLostfoundController::class, 'index'])->name('lostfound');
     Route::post('/lostfound', [AdminLostfoundController::class, 'store'])->name('lostfound.store');
     Route::post('/lostfound/{lostfound_id}/resolve', [AdminLostfoundController::class, 'resolve'])->name('lostfound.resolve');
