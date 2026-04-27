@@ -56,7 +56,7 @@
         </a>
 
         <div style="margin-top: auto;">
-            <a href="#" class="nav-item logout">
+            <a href="#" class="nav-item logout" @click.prevent="showLogoutModal = true">
                 <i data-lucide="log-out"></i>
                 <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Logout</span>

@@ -62,7 +62,7 @@ class AnnouncementController extends Controller
         $announcement = new Announcement();
         $announcement->announcement_id = 'ANN' . strtoupper(Str::random(7));
         $announcement->title           = $request->title;
-        $announcement->content         = $request->content;
+        $announcement->content         = $request->input('content');
         $announcement->created_by      = auth()->id();
         $announcement->created_at      = Carbon::now();
 
@@ -86,7 +86,7 @@ class AnnouncementController extends Controller
 
         $announcement = Announcement::where('announcement_id', $announcement_id)->firstOrFail();
         $announcement->title   = $request->title;
-        $announcement->content = $request->content;
+        $announcement->content = $request->input('content');
 
         if ($request->hasFile('file')) {
             if ($announcement->file) {
