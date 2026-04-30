@@ -25,7 +25,6 @@ class EventController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Calculate Stats
         $stats = [
             'total'    => Event::count(),
             'approved' => Event::whereIn('status', ['upcoming', 'ongoing', 'completed'])->count(),
@@ -33,17 +32,13 @@ class EventController extends Controller
             'rejected' => Event::where('status', 'rejected')->count(),
         ];
 
-        // 2. Fetch Pending Requests (Top Section + Dedicated View)
         $pendingEvents = Event::with(['category', 'creator'])
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // 3. Fetch Categories for Filter Navigation
         $categories = EventCategory::orderBy('name_category', 'asc')->get();
 
-        // 4. Fetch All Events for the Table with Like Count
-        // Using withCount to efficiently get the number of likes
         $query = Event::with(['category', 'creator'])->withCount('likes');
 
         if ($request->filled('search')) {
@@ -90,9 +85,6 @@ class EventController extends Controller
         return view('admin.events', compact('stats', 'pendingEvents', 'categories', 'allEvents'));
     }
 
-    /**
-     * Respond to an event request (Approve/Reject).
-     */
     public function respond(string $event_id, Request $request)
     {
         $request->validate([
@@ -102,7 +94,7 @@ class EventController extends Controller
         $event = Event::where('event_id', $event_id)->firstOrFail();
 
         if ($request->action === 'approve') {
-            $event->status = 'upcoming'; // Moving from pending to approved (upcoming)
+            $event->status = 'upcoming';
             $message = 'Event approved successfully.';
         } else {
             $event->status = 'rejected';
@@ -111,7 +103,6 @@ class EventController extends Controller
 
         $event->save();
 
-        // Send Push Notification to Event Creator
         $creator = $event->creator;
         if ($creator && $creator->fcm_token) {
             $statusText = ($request->action === 'approve') ? 'disetujui' : 'ditolak';
@@ -130,9 +121,6 @@ class EventController extends Controller
         return back()->with('success', $message);
     }
 
-    /**
-     * Delete an event.
-     */
     public function destroy(string $event_id)
     {
         $event = Event::where('event_id', $event_id)->firstOrFail();
@@ -141,9 +129,6 @@ class EventController extends Controller
         return back()->with('success', 'Event deleted successfully.');
     }
 
-    /**
-     * Store a newly created event.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -158,14 +143,12 @@ class EventController extends Controller
             'poster'      => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
-        // Combine date and time
         $start_datetime = Carbon::parse($request->start_date . ' ' . $request->start_time);
         $end_datetime   = Carbon::parse($request->end_date . ' ' . $request->end_time);
 
         $event = new Event();
-        // Generate custom ID: EVT + 7 random characters (total 10)
         $event->event_id = 'EVT' . strtoupper(Str::random(7));
-        
+
         $event->category_id = $request->category_id;
         $event->title       = $request->title;
         $event->description = $request->description;
@@ -173,7 +156,7 @@ class EventController extends Controller
         $event->end_date    = $end_datetime;
         $event->location    = $request->location;
         $event->created_by  = auth()->id();
-        $event->status      = 'upcoming'; // Admin created events are usually auto-approved or set to upcoming
+        $event->status      = 'upcoming';
         $event->created_at  = Carbon::now();
 
         if ($request->hasFile('poster')) {
@@ -185,9 +168,7 @@ class EventController extends Controller
 
         return back()->with('success', 'Event created successfully.');
     }
-    /**
-     * Update an existing event.
-     */
+
     public function update(Request $request, string $event_id)
     {
         $validated = $request->validate([
@@ -204,7 +185,6 @@ class EventController extends Controller
 
         $event = Event::where('event_id', $event_id)->firstOrFail();
 
-        // Combine date and time
         $start_datetime = Carbon::parse($request->start_date . ' ' . $request->start_time);
         $end_datetime   = Carbon::parse($request->end_date . ' ' . $request->end_time);
 
@@ -217,7 +197,6 @@ class EventController extends Controller
         $event->updated_at  = Carbon::now();
 
         if ($request->hasFile('poster')) {
-            // Delete old poster if exists
             if ($event->poster) {
                 Storage::disk('public')->delete($event->poster);
             }

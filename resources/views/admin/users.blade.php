@@ -75,7 +75,7 @@
                         <span>Tambah User</span>
                     </button>
 
-                    <button type="button" class="btn-primary" @click="exportToCSV()">
+                    <button type="button" class="btn-primary" @click="exportData()">
                         <i data-lucide="download"></i>
                         <span>Export</span>
                     </button>
@@ -1207,17 +1207,9 @@
                     finally { this.loading = false; }
                 },
 
-                exportToCSV() {
-                    const headers = ['ID', 'Name', 'Email', 'NIM', 'Prodi', 'Status', 'Joined'];
-                    const rows = this.filteredUsers.map(u => [u.id, u.name, u.email, u.nim, u.prodi, u.status, u.joined]);
-                    let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-                    const encodedUri = encodeURI(csvContent);
-                    const link = document.createElement("a");
-                    link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", `users_export_${new Date().toISOString().slice(0,10)}.csv`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                exportData() {
+                    let url = `/admin/users/export-pdf?search=${encodeURIComponent(this.search)}&status=${encodeURIComponent(this.status)}`;
+                    window.open(url, '_blank');
                 }
             }));
         });

@@ -10,19 +10,12 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-// ─────────────────────────────────────────────────────────────
-//  Public Routes
-    // ─────────────────────────────────────────────────────────────
-
 Route::get('/', [LandingController::class, 'index'])->name('home');
-
-// ─────────────────────────────────────────────────────────────
-//  Admin Routes
-// ─────────────────────────────────────────────────────────────
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [UserController::class, 'index'])->name('users');
+    Route::get('/users/export-pdf', [UserController::class, 'exportPdf'])->name('users.export-pdf');
     Route::get('/teams', [TeamController::class, 'index'])->name('teams');
     Route::post('/teams/{member_id}/respond', [TeamController::class, 'respond'])->name('teams.respond');
     Route::delete('/teams/{team_id}', [TeamController::class, 'destroy'])->name('teams.destroy');
@@ -40,10 +33,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/events/{event_id}/respond', [EventController::class, 'respond'])->name('events.respond');
     Route::delete('/events/{event_id}', [EventController::class, 'destroy'])->name('events.destroy');
 });
-
-// ─────────────────────────────────────────────────────────────
-//  Profile Routes (Breeze)
-// ─────────────────────────────────────────────────────────────
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

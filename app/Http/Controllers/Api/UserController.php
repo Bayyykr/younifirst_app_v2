@@ -9,6 +9,7 @@ use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -154,5 +155,38 @@ class UserController extends Controller
         $user->update(['fcm_token' => $request->fcm_token]);
 
         return response()->json(['message' => 'FCM token updated successfully']);
+    }
+
+    /**
+     * POST /api/users/profile
+     * Used for updating the authenticated user's own profile.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name'  => 'sometimes|required|string|max:255',
+            'nim'   => 'nullable|string|max:15',
+            'prodi' => 'nullable|string|max:50',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            $path = $request->file('photo')->store('profiles', 'public');
+            $user->photo = $path;
+        }
+
+        $user->fill($request->only(['name', 'nim', 'prodi']));
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'data'    => $user
+        ]);
     }
 }

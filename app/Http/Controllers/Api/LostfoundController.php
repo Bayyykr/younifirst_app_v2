@@ -172,4 +172,49 @@ class LostfoundController extends Controller
             'data'    => $comment
         ], 201);
     }
+
+    /**
+     * PUT /api/lostfound/comments/{comment_id}
+     */
+    public function updateComment(string $comment_id, Request $request)
+    {
+        $user = $request->user();
+        $comment = LostfoundComment::where('comment_id', $comment_id)->firstOrFail();
+
+        // Only allow owner to update
+        if ($comment->user_id !== $user->user_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        $comment->comment = $validated['comment'];
+        $comment->update_at = now();
+        $comment->save();
+
+        return response()->json([
+            'message' => 'Comment updated successfully',
+            'data'    => $comment
+        ]);
+    }
+
+    /**
+     * DELETE /api/lostfound/comments/{comment_id}
+     */
+    public function deleteComment(string $comment_id, Request $request)
+    {
+        $user = $request->user();
+        $comment = LostfoundComment::where('comment_id', $comment_id)->firstOrFail();
+
+        // Allow owner or admin to delete
+        if ($comment->user_id !== $user->user_id && $user->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json(['message' => 'Comment deleted successfully']);
+    }
 }

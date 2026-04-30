@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/fcm-token', 'updateFcmToken');
         Route::get('/{user_id}', 'show');
         Route::post('/add', 'store');
+        Route::post('/profile', 'updateProfile');
         Route::put('/{user_id}', 'update');
         Route::delete('/{user_id}', 'destroy');
     });
@@ -82,5 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{lostfound_id}', 'update');
         Route::delete('/{lostfound_id}', 'destroy');
         Route::post('/{lostfound_id}/comments', 'addComment');
+        Route::put('/comments/{comment_id}', 'updateComment');
+        Route::delete('/comments/{comment_id}', 'deleteComment');
     });
 });

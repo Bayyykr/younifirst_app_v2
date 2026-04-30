@@ -9,11 +9,9 @@
                 categories: {{ json_encode($categories) }}
              })" x-cloak>
 
-        <!-- View 1: Main Dashboard -->
         <div x-show="viewMode === 'dashboard'" x-transition:enter="transition-fade"
             x-transition:enter-start="opacity-0 transform translate-y-4"
             x-transition:enter-end="opacity-100 transform translate-y-0">
-            <!-- Stats Section -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-label">Total Events</span>
@@ -34,7 +32,6 @@
                 </div>
             </div>
 
-            <!-- Pending Requests Section (Dashboard View) -->
             @if($pendingEvents->count() > 0)
                 <div class="pending-section">
                     <div class="section-header">
@@ -80,15 +77,15 @@
                                 <div class="pending-card-right">
                                     <button class="btn btn-action-outline"
                                         @click="openViewModal(allEvents.find(e => e.id === '{{ $event->event_id }}'))">
-                                        <i data-lucide="eye" style="width: 16px;"></i> Lihat Detail
+                                        <i data-lucide="eye" style="width: 16px;"></i> 
                                     </button>
                                     <button class="btn btn-action-success"
                                         @click="openRespondModal('{{ $event->event_id }}', '{{ addslashes($event->title) }}', 'approve')">
-                                        <i data-lucide="check" style="width: 16px;"></i> Setujui
+                                        <i data-lucide="check" style="width: 16px;"></i> 
                                     </button>
                                     <button class="btn btn-action-danger"
                                         @click="openRespondModal('{{ $event->event_id }}', '{{ addslashes($event->title) }}', 'reject')">
-                                        <i data-lucide="x" style="width: 16px;"></i> Tolak
+                                        <i data-lucide="x" style="width: 16px;"></i> 
                                     </button>
                                 </div>
                             </div>
@@ -97,7 +94,6 @@
                 </div>
             @endif
 
-            <!-- Main Toolbar -->
             <div class="main-toolbar">
                 <div class="toolbar-left">
                     <div class="search-wrapper">
@@ -120,7 +116,6 @@
                 </button>
             </div>
 
-            <!-- Category Filter Bar -->
             <div class="category-filter-bar">
                 <span class="filter-label"><i data-lucide="filter" style="width: 16px;"></i> Filter Kategori</span>
                 <div class="filter-pills">
@@ -133,7 +128,6 @@
                 </div>
             </div>
 
-            <!-- Events Table -->
             <div class="table-container">
                 <table class="premium-table">
                     <thead>
