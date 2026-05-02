@@ -1007,6 +1007,7 @@
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                                 'X-CSRF-TOKEN': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest',
                                 'Accept': 'application/json',
                             },
                             body: new URLSearchParams({
@@ -1035,12 +1036,20 @@
                             // Reload after short delay so pending section updates
                             setTimeout(() => window.location.reload(), 1800);
                         } else {
-                            throw new Error('Gagal mengirim permintaan.');
+                            let errorMsg = 'Gagal memperbarui status';
+                            try {
+                                const result = await response.json();
+                                errorMsg = result.message || errorMsg;
+                            } catch (e) {
+                                console.error('Failed to parse error JSON:', e);
+                            }
+                            this.showToast(errorMsg, 'error');
                         }
                     } catch (error) {
+                        console.error(error);
+                        this.showToast('Terjadi kesalahan sistem. Silakan coba lagi.', 'error');
+                    } finally {
                         this.respondLoading = false;
-                        this.showRespondModal = false;
-                        this.showToast('Terjadi kesalahan. Coba lagi.', 'error');
                     }
                 },
 

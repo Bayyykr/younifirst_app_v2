@@ -25,7 +25,7 @@ class FirebaseService
 
             $this->auth = $factory->createAuth();
             $this->messaging = $factory->createMessaging();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Firebase Initialization Failed: ' . $e->getMessage());
         }
     }
@@ -56,7 +56,7 @@ class FirebaseService
                 'uid'     => $response->json('localId'),
                 'idToken' => $response->json('idToken'),
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Firebase signInWithEmailAndPassword error: ' . $e->getMessage());
             return null;
         }
@@ -73,7 +73,7 @@ class FirebaseService
         } catch (FailedToVerifyToken $e) {
             Log::error('Firebase Token Verification Failed: ' . $e->getMessage());
             return null;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Firebase error: ' . $e->getMessage());
             return null;
         }
@@ -98,7 +98,7 @@ class FirebaseService
 
             $createdUser = $this->auth->createUser($userProperties);
             return $createdUser->uid;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Firebase User Creation Failed: ' . $e->getMessage());
             return null;
         }
@@ -111,7 +111,7 @@ class FirebaseService
     {
         try {
             return $this->auth->getUser($uid);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return null;
         }
     }
@@ -127,10 +127,15 @@ class FirebaseService
                 ->withNotification($notification)
                 ->withData($data);
 
+            if (!$this->messaging) {
+                Log::warning('FCM Notification aborted: Firebase Messaging not initialized.');
+                return false;
+            }
+
             $this->messaging->send($message);
             Log::info("FCM Notification sent to token: {$fcmToken}");
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('FCM Notification Failed: ' . $e->getMessage());
             return false;
         }

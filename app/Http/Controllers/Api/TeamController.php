@@ -9,6 +9,7 @@ use App\Models\Views\ViewTeam;
 use App\Models\Views\ViewTeamMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class TeamController extends Controller
 {
@@ -76,14 +77,26 @@ class TeamController extends Controller
             'max_member'       => 'required|integer|min:1',
         ]);
 
-        $team = new Team();
-        // Generate custom ID: TEM + 7 random characters (total 10)
-        $team->team_id = 'TEM' . strtoupper(Str::random(7));
-        $team->fill($validated);
-        $team->created_at = \Illuminate\Support\Carbon::now();
-        $team->save();
+        return DB::transaction(function () use ($validated, $request) {
+            $team = new Team();
+            // Generate custom ID: TEM + 7 random characters (total 10)
+            $team->team_id = 'TEM' . strtoupper(Str::random(7));
+            $team->fill($validated);
+            $team->created_at = \Illuminate\Support\Carbon::now();
+            $team->status = 'pending'; // Explicitly set pending
+            $team->save();
 
-        return response()->json(['message' => 'Team created successfully', 'data' => $team], 211);
+            // Automatically add creator as leader
+            $member = new TeamMember();
+            $member->member_id = 'MEM' . strtoupper(Str::random(7));
+            $member->team_id   = $team->team_id;
+            $member->user_id   = $request->user()->user_id;
+            $member->role      = 'leader';
+            $member->status    = 'pending';
+            $member->save();
+
+            return response()->json(['message' => 'Team created successfully and waiting for admin approval', 'data' => $team], 211);
+        });
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\Views\ViewTeamMember;
 use App\Models\Team;
 use App\Models\TeamMember;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TeamController extends Controller
 {
@@ -68,25 +69,39 @@ class TeamController extends Controller
             'type'   => 'required|in:team,member',
         ]);
 
-        if ($request->type === 'team') {
-            $team = Team::where('team_id', $id)->firstOrFail();
-            if ($request->action === 'approve') {
-                $team->update(['status' => 'approved']);
-                $message = 'Tim berhasil disetujui.';
+        $message = DB::transaction(function () use ($id, $request) {
+            if ($request->type === 'team') {
+                $team = Team::where('team_id', $id)->firstOrFail();
+                if ($request->action === 'approve') {
+                    $team->update(['status' => 'approved']);
+                    
+                    // Activate leader status
+                    TeamMember::where('team_id', $id)
+                        ->where('role', 'leader')
+                        ->update(['status' => 'active']);
+                        
+                    return 'Tim berhasil disetujui.';
+                } else {
+                    $team->update(['status' => 'rejected']);
+                    
+                    // Reject leader status
+                    TeamMember::where('team_id', $id)
+                        ->where('role', 'leader')
+                        ->update(['status' => 'rejected']);
+                        
+                    return 'Tim telah ditolak.';
+                }
             } else {
-                $team->update(['status' => 'rejected']);
-                $message = 'Tim telah ditolak.';
+                $member = TeamMember::where('member_id', $id)->firstOrFail();
+                if ($request->action === 'approve') {
+                    $member->update(['status' => 'active']);
+                    return 'Permohonan bergabung disetujui.';
+                } else {
+                    $member->update(['status' => 'rejected']);
+                    return 'Permohonan bergabung ditolak.';
+                }
             }
-        } else {
-            $member = TeamMember::where('member_id', $id)->firstOrFail();
-            if ($request->action === 'approve') {
-                $member->update(['status' => 'active']);
-                $message = 'Permohonan bergabung disetujui.';
-            } else {
-                $member->update(['status' => 'rejected']);
-                $message = 'Permohonan bergabung ditolak.';
-            }
-        }
+        });
 
         if ($request->ajax()) {
             return response()->json(['message' => $message]);

@@ -16,7 +16,11 @@ class AnnouncementController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ViewAnnouncement::query();
+        $query = ViewAnnouncement::where('status', 'publish')
+                               ->where('creator_role', 'admin')
+                               ->where('title', 'not like', 'Pengajuan %')
+                               ->where('title', 'not like', '% disetujui')
+                               ->where('title', 'not like', '% ditolak');
 
         if ($request->filled('search')) {
             $q = $request->search;
@@ -36,7 +40,13 @@ class AnnouncementController extends Controller
      */
     public function show(string $announcement_id)
     {
-        $announcement = ViewAnnouncement::where('announcement_id', $announcement_id)->firstOrFail();
+        $announcement = ViewAnnouncement::where('announcement_id', $announcement_id)
+                                       ->where('status', 'publish')
+                                       ->where('creator_role', 'admin')
+                                       ->where('title', 'not like', 'Pengajuan %')
+                                       ->where('title', 'not like', '% disetujui')
+                                       ->where('title', 'not like', '% ditolak')
+                                       ->firstOrFail();
         return response()->json(['data' => $announcement]);
     }
 

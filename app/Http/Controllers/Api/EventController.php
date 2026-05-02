@@ -111,6 +111,7 @@ class EventController extends Controller
             $event->poster = $path;
         }
 
+        $event->status = $request->input('status', 'pending');
         $event->created_at = \Illuminate\Support\Carbon::now();
         $event->save();
 

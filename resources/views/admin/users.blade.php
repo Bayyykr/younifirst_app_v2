@@ -1064,7 +1064,7 @@
                 async updateUser() {
                     this.loading = true;
                     try {
-                        const response = await fetch(`/api/users/${this.editingUser.user_id}`, {
+                        const response = await fetch(`/admin/users/${this.editingUser.user_id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
                             body: JSON.stringify(this.editingUser)
@@ -1088,7 +1088,7 @@
                 async confirmSuspend() {
                     this.loading = true;
                     try {
-                        const response = await fetch(`/api/users/${this.selectedUser.user_id}`, {
+                        const response = await fetch(`/admin/users/${this.selectedUser.user_id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
                             body: JSON.stringify({ 
@@ -1124,7 +1124,7 @@
                 async confirmUnsuspend() {
                     this.loading = true;
                     try {
-                        const response = await fetch(`/api/users/${this.selectedUser.user_id}`, {
+                        const response = await fetch(`/admin/users/${this.selectedUser.user_id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
                             body: JSON.stringify({ status: 'active' })
@@ -1149,7 +1149,7 @@
                 async confirmUnblock() {
                     this.loading = true;
                     try {
-                        const response = await fetch(`/api/users/${this.selectedUser.user_id}`, {
+                        const response = await fetch(`/admin/users/${this.selectedUser.user_id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
                             body: JSON.stringify({ status: 'active' })
@@ -1168,7 +1168,7 @@
                 async confirmBlock() {
                     this.loading = true;
                     try {
-                        const response = await fetch(`/api/users/${this.selectedUser.user_id}`, {
+                        const response = await fetch(`/admin/users/${this.selectedUser.user_id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
                             body: JSON.stringify({ status: 'blocked' })
@@ -1188,7 +1188,7 @@
                 async addUser() {
                     this.loading = true;
                     try {
-                        const response = await fetch('/api/users/add', {
+                        const response = await fetch('/admin/users', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
                             body: JSON.stringify(this.newUser)

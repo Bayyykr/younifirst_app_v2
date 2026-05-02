@@ -19,7 +19,7 @@ class Announcement extends Model
     const DELETED_AT = 'deleted_at';
 
     protected $fillable = [
-        'announcement_id', 'title', 'content', 'file', 'created_by', 'created_at',
+        'announcement_id', 'title', 'content', 'status', 'file', 'created_by', 'created_at',
     ];
 
     protected $appends = ['file_url'];

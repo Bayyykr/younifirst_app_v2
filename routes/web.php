@@ -15,6 +15,9 @@ Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [UserController::class, 'index'])->name('users');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::put('/users/{user_id}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user_id}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('/users/export-pdf', [UserController::class, 'exportPdf'])->name('users.export-pdf');
     Route::get('/teams', [TeamController::class, 'index'])->name('teams');
     Route::post('/teams/{member_id}/respond', [TeamController::class, 'respond'])->name('teams.respond');

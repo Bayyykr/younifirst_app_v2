@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\LostfoundController;
 use App\Http\Controllers\Api\TeamController;
@@ -86,4 +87,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/comments/{comment_id}', 'updateComment');
         Route::delete('/comments/{comment_id}', 'deleteComment');
     });
+    // ── CHAT ──────────────────────────────────────────────────
+    Route::get('/chat/token', [ChatController::class, 'getFirebaseToken']);
 });

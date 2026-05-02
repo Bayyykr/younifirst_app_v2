@@ -31,6 +31,7 @@
                 <tr>
                     <th>Judul</th>
                     <th>Konten</th>
+                    <th>Status</th>
                     <th>Dibuat oleh</th>
                     <th>Tanggal</th>
                     <th>Aksi</th>
@@ -44,6 +45,20 @@
                     </td>
                     <td>
                         <div class="text-truncate-2" style="max-width: 400px; color: #475569; font-size: 0.875rem;" x-text="ann.content"></div>
+                    </td>
+                    <td>
+                        <template x-if="ann.status === 'publish'">
+                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #ECFDF5; color: #10B981; border-radius: 99px; font-size: 12px; font-weight: 600;">
+                                <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
+                                Published
+                            </span>
+                        </template>
+                        <template x-if="ann.status === 'draft'">
+                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #F1F5F9; color: #64748B; border-radius: 99px; font-size: 12px; font-weight: 600;">
+                                <span style="width: 6px; height: 6px; background: #64748B; border-radius: 50%;"></span>
+                                Draft
+                            </span>
+                        </template>
                     </td>
                     <td>
                         <span style="font-weight: 600; color: #1E293B;" x-text="ann.creator_name"></span>
@@ -125,6 +140,14 @@
                     <textarea name="content" x-model="formData.content" required rows="5" placeholder="Tuliskan detail pengumuman di sini..." style="width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
                 </div>
 
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 8px;">Status</label>
+                    <select name="status" x-model="formData.status" required style="width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; background-color: white;">
+                        <option value="publish">Publish</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </div>
+
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 8px;">File Lampiran (Opsional)</label>
                     
@@ -177,6 +200,23 @@
                 <div style="margin-bottom: 20px;">
                     <span style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em;">Konten</span>
                     <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-top: 4px; white-space: pre-line;" x-text="formData.content"></p>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <span style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em;">Status</span>
+                    <div style="margin-top: 4px;">
+                        <template x-if="formData.status === 'publish'">
+                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #ECFDF5; color: #10B981; border-radius: 99px; font-size: 12px; font-weight: 600;">
+                                <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
+                                Published
+                            </span>
+                        </template>
+                        <template x-if="formData.status === 'draft'">
+                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #F1F5F9; color: #64748B; border-radius: 99px; font-size: 12px; font-weight: 600;">
+                                <span style="width: 6px; height: 6px; background: #64748B; border-radius: 50%;"></span>
+                                Draft
+                            </span>
+                        </template>
+                    </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
                     <div>
@@ -510,6 +550,7 @@
             formData: {
                 title: '',
                 content: '',
+                status: 'publish',
                 file_url: null,
                 creator_name: '',
                 date: ''
@@ -525,7 +566,7 @@
             openAddModal() {
                 this.isEdit = false;
                 this.selectedId = null;
-                this.formData = { title: '', content: '', file_url: null, creator_name: '', date: '' };
+                this.formData = { title: '', content: '', status: 'publish', file_url: null, creator_name: '', date: '' };
                 this.selectedFileName = '';
                 this.showFormModal = true;
             },
@@ -534,6 +575,7 @@
                 this.formData = {
                     title: ann.title,
                     content: ann.content,
+                    status: ann.status,
                     file_url: ann.file_url,
                     creator_name: ann.creator_name,
                     date: ann.date
@@ -548,6 +590,7 @@
                 this.formData = {
                     title: ann.title,
                     content: ann.content,
+                    status: ann.status,
                     file_url: ann.file_url
                 };
                 this.selectedFileName = '';

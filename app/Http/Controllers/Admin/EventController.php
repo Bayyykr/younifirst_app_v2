@@ -9,6 +9,7 @@ use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
 
 class EventController extends Controller
@@ -85,7 +86,7 @@ class EventController extends Controller
         return view('admin.events', compact('stats', 'pendingEvents', 'categories', 'allEvents'));
     }
 
-    public function respond(string $event_id, Request $request)
+    public function respond(Request $request, string $event_id)
     {
         $request->validate([
             'action' => 'required|in:approve,reject'
@@ -101,30 +102,52 @@ class EventController extends Controller
             $message = 'Event rejected successfully.';
         }
 
-        $event->save();
+        try {
+            $event->save();
 
-        $creator = $event->creator;
-        if ($creator && $creator->fcm_token) {
-            $statusText = ($request->action === 'approve') ? 'disetujui' : 'ditolak';
-            $this->firebase->sendNotification(
-                $creator->fcm_token,
-                "Update Status Event",
-                "Event '{$event->title}' Anda telah {$statusText}.",
-                [
-                    'event_id' => (string) $event->event_id,
-                    'status'   => $event->status,
-                    'type'     => 'event_status_update'
-                ]
-            );
+            // Firebase notification (silent fail)
+            try {
+                $creator = $event->creator;
+                if ($creator && $creator->fcm_token) {
+                    $statusText = ($request->action === 'approve') ? 'disetujui' : 'ditolak';
+                    $this->firebase->sendNotification(
+                        $creator->fcm_token,
+                        "Update Status Event",
+                        "Event '{$event->title}' Anda telah {$statusText}.",
+                        [
+                            'event_id' => (string) $event->event_id,
+                            'status'   => $event->status,
+                            'type'     => 'event_status_update'
+                        ]
+                    );
+                }
+            } catch (\Throwable $e) {
+                Log::warning("FCM Notification failed but proceeding: " . $e->getMessage());
+            }
+
+            if ($request->ajax()) {
+                return response()->json(['message' => $message, 'status' => 'success']);
+            }
+
+            return back()->with('success', $message);
+
+        } catch (\Throwable $e) {
+            Log::error("Event Respond Error for ID {$event_id}: " . $e->getMessage());
+            if ($request->ajax()) {
+                return response()->json(['message' => 'Gagal memperbarui status: ' . $e->getMessage()], 500);
+            }
+            throw $e;
         }
-
-        return back()->with('success', $message);
     }
 
     public function destroy(string $event_id)
     {
         $event = Event::where('event_id', $event_id)->firstOrFail();
         $event->delete();
+
+        if (request()->ajax()) {
+            return response()->json(['message' => 'Event deleted successfully.']);
+        }
 
         return back()->with('success', 'Event deleted successfully.');
     }
@@ -165,6 +188,10 @@ class EventController extends Controller
         }
 
         $event->save();
+
+        if ($request->ajax()) {
+            return response()->json(['message' => 'Event created successfully.', 'data' => $event]);
+        }
 
         return back()->with('success', 'Event created successfully.');
     }
@@ -208,6 +235,10 @@ class EventController extends Controller
         }
 
         $event->save();
+
+        if ($request->ajax()) {
+            return response()->json(['message' => 'Event updated successfully.', 'data' => $event]);
+        }
 
         return back()->with('success', 'Event updated successfully.');
     }

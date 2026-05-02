@@ -26,7 +26,11 @@ class AnnouncementController extends Controller
             'October'   => 'Oktober',   'November' => 'November', 'December' => 'Desember',
         ];
 
-        $announcements = ViewAnnouncement::orderBy('created_at', 'desc')
+        $announcements = ViewAnnouncement::where('creator_role', 'admin')
+            ->where('title', 'not like', 'Pengajuan %')
+            ->where('title', 'not like', '% disetujui')
+            ->where('title', 'not like', '% ditolak')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($announcement) use ($hariMap, $bulanMap) {
                 $date          = $announcement->created_at;
@@ -42,6 +46,7 @@ class AnnouncementController extends Controller
                     'id'           => $announcement->announcement_id,
                     'title'        => $announcement->title,
                     'content'      => $announcement->content,
+                    'status'       => $announcement->status,
                     'creator_name' => $announcement->creator_name ?? 'Sistem',
                     'date'         => $formattedDate,
                     'file_url'     => $announcement->file_url,
@@ -56,6 +61,7 @@ class AnnouncementController extends Controller
         $request->validate([
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
+            'status'  => 'required|in:draft,publish',
             'file'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
@@ -63,6 +69,7 @@ class AnnouncementController extends Controller
         $announcement->announcement_id = 'ANN' . strtoupper(Str::random(7));
         $announcement->title           = $request->title;
         $announcement->content         = $request->input('content');
+        $announcement->status          = $request->status;
         $announcement->created_by      = auth()->id();
         $announcement->created_at      = Carbon::now();
 
@@ -81,12 +88,14 @@ class AnnouncementController extends Controller
         $request->validate([
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
+            'status'  => 'required|in:draft,publish',
             'file'    => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $announcement = Announcement::where('announcement_id', $announcement_id)->firstOrFail();
         $announcement->title   = $request->title;
         $announcement->content = $request->input('content');
+        $announcement->status  = $request->status;
 
         if ($request->hasFile('file')) {
             if ($announcement->file) {
