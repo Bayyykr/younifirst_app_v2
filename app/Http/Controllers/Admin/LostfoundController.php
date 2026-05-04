@@ -5,13 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\LostfoundItem;
 use App\Models\Views\ViewLostfound;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class LostfoundController extends Controller
 {
+    protected $firebase;
+
+    public function __construct(FirebaseService $firebase)
+    {
+        $this->firebase = $firebase;
+    }
     /**
      * Display the Lost and Found dashboard for Admin.
      */
@@ -123,6 +131,26 @@ class LostfoundController extends Controller
         $item->status = 'claimed';
         $item->updated_at = now();
         $item->save();
+
+        // Push Notification to Item Owner
+        try {
+            $owner = $item->user;
+            if ($owner && $owner->fcm_token) {
+                $this->firebase->sendNotification(
+                    $owner->fcm_token,
+                    "Update Status Barang",
+                    "Barang '{$item->item_name}' Anda telah ditandai sebagai Selesai/Diklaim.",
+                    [
+                        'lostfound_id' => (string) $item->lostfound_id,
+                        'status'       => $item->status,
+                        'type'         => 'lostfound_status_update'
+                    ]
+                );
+                Log::info("FCM: LostFound notification sent to user {$owner->user_id}");
+            }
+        } catch (\Throwable $e) {
+            Log::warning("FCM: LostFound notification failed for item {$id}: " . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Status barang berhasil diperbarui menjadi selesai!',

@@ -5,9 +5,9 @@
 
 @section('content')
     <div class="event-management" x-data="eventManagement({
-                initialEvents: {{ json_encode($allEvents) }},
-                categories: {{ json_encode($categories) }}
-             })" x-cloak>
+                                initialEvents: {{ json_encode($allEvents) }},
+                                categories: {{ json_encode($categories) }}
+                             })" x-cloak>
 
         <div x-show="viewMode === 'dashboard'" x-transition:enter="transition-fade"
             x-transition:enter-start="opacity-0 transform translate-y-4"
@@ -77,15 +77,15 @@
                                 <div class="pending-card-right">
                                     <button class="btn btn-action-outline"
                                         @click="openViewModal(allEvents.find(e => e.id === '{{ $event->event_id }}'))">
-                                        <i data-lucide="eye" style="width: 16px;"></i> 
+                                        <i data-lucide="eye" style="width: 16px;"></i>
                                     </button>
                                     <button class="btn btn-action-success"
                                         @click="openRespondModal('{{ $event->event_id }}', '{{ addslashes($event->title) }}', 'approve')">
-                                        <i data-lucide="check" style="width: 16px;"></i> 
+                                        <i data-lucide="check" style="width: 16px;"></i>
                                     </button>
                                     <button class="btn btn-action-danger"
                                         @click="openRespondModal('{{ $event->event_id }}', '{{ addslashes($event->title) }}', 'reject')">
-                                        <i data-lucide="x" style="width: 16px;"></i> 
+                                        <i data-lucide="x" style="width: 16px;"></i>
                                     </button>
                                 </div>
                             </div>
@@ -144,7 +144,7 @@
                     </thead>
                     <tbody>
                         <template x-for="eventItem in paginatedEvents" :key="eventItem.id">
-                            <tr>
+                            <tr class="table-row-hover">
                                 <td>
                                     <div class="cell-event">
                                         <div class="cell-thumb">
@@ -183,14 +183,18 @@
                                 <td>
                                     <div class="cell-actions">
                                         <button class="action-icon-btn" @click="openViewModal(eventItem)" title="Detail">
-                                            <i data-lucide="eye" style="width: 18px; pointer-events: none;"></i>
+                                            <i data-lucide="eye"
+                                                style="width: 18px; height: 18px; pointer-events: none;"></i>
                                         </button>
-                                        <button class="action-icon-btn icon-blue" @click="openEditModal(eventItem)" title="Edit">
-                                            <i data-lucide="edit-3" style="width: 18px; pointer-events: none;"></i>
+                                        <button class="action-icon-btn text-primary" @click="openEditModal(eventItem)"
+                                            title="Edit">
+                                            <i data-lucide="edit-3"
+                                                style="width: 18px; height: 18px; pointer-events: none;"></i>
                                         </button>
-                                        <button class="action-icon-btn icon-red" @click="deleteEvent(eventItem.id)"
+                                        <button class="action-icon-btn text-danger" @click="deleteEvent(eventItem.id)"
                                             title="Hapus">
-                                            <i data-lucide="trash-2" style="width: 18px; pointer-events: none;"></i>
+                                            <i data-lucide="trash-2"
+                                                style="width: 18px; height: 18px; pointer-events: none;"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -301,7 +305,8 @@
                                         <div class="req-detail-item">
                                             <div class="detail-icon"><i data-lucide="bar-chart-2"></i></div>
                                             <div class="detail-text">
-                                                <label>Kategori</label><span>{{ $event->category->name_category }}</span></div>
+                                                <label>Kategori</label><span>{{ $event->category->name_category }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="req-description-preview">{{ Str::limit($event->description, 200) }}</div>
@@ -378,22 +383,20 @@
 
         <!-- Approve Confirmation Modal -->
         <div x-show="showRespondModal && respondAction === 'approve'" class="modal-overlay"
-            x-transition:enter="transition-fade" x-transition:leave="transition-fade"
-            style="display: none; z-index: 9999;">
+            x-transition:enter="transition-fade" x-transition:leave="transition-fade" style="display: none; z-index: 9999;">
             <div class="modal-container respond-confirm-modal" @click.away="showRespondModal = false"
                 x-transition:enter="modal-slide-in">
                 <div class="respond-icon-circle respond-approve-circle">
                     <i data-lucide="check-circle"></i>
                 </div>
                 <h3>Setujui Event?</h3>
-                <p>Event <strong x-text="respondEventTitle"></strong> akan disetujui dan segera dipublikasikan ke seluruh pengguna.</p>
+                <p>Event <strong x-text="respondEventTitle"></strong> akan disetujui dan segera dipublikasikan ke seluruh
+                    pengguna.</p>
                 <div class="delete-modal-actions">
-                    <button @click="showRespondModal = false" class="btn btn-secondary-gray"
-                        :disabled="respondLoading">
+                    <button @click="showRespondModal = false" class="btn btn-secondary-gray" :disabled="respondLoading">
                         <i data-lucide="x" style="width: 16px;"></i> Batal
                     </button>
-                    <button @click="confirmRespond()" class="btn btn-approve-solid"
-                        :disabled="respondLoading">
+                    <button @click="confirmRespond()" class="btn btn-approve-solid" :disabled="respondLoading">
                         <template x-if="respondLoading">
                             <span class="loading-spinner"></span>
                         </template>
@@ -406,22 +409,20 @@
 
         <!-- Reject Confirmation Modal -->
         <div x-show="showRespondModal && respondAction === 'reject'" class="modal-overlay"
-            x-transition:enter="transition-fade" x-transition:leave="transition-fade"
-            style="display: none; z-index: 9999;">
+            x-transition:enter="transition-fade" x-transition:leave="transition-fade" style="display: none; z-index: 9999;">
             <div class="modal-container respond-confirm-modal" @click.away="showRespondModal = false"
                 x-transition:enter="modal-slide-in">
                 <div class="respond-icon-circle respond-reject-circle">
                     <i data-lucide="slash"></i>
                 </div>
                 <h3>Tolak Event?</h3>
-                <p>Event <strong x-text="respondEventTitle"></strong> akan ditolak dan pembuat event akan mendapatkan notifikasi.</p>
+                <p>Event <strong x-text="respondEventTitle"></strong> akan ditolak dan pembuat event akan mendapatkan
+                    notifikasi.</p>
                 <div class="delete-modal-actions">
-                    <button @click="showRespondModal = false" class="btn btn-secondary-gray"
-                        :disabled="respondLoading">
+                    <button @click="showRespondModal = false" class="btn btn-secondary-gray" :disabled="respondLoading">
                         <i data-lucide="x" style="width: 16px;"></i> Batal
                     </button>
-                    <button @click="confirmRespond()" class="btn btn-danger-solid"
-                        :disabled="respondLoading">
+                    <button @click="confirmRespond()" class="btn btn-danger-solid" :disabled="respondLoading">
                         <template x-if="respondLoading">
                             <span class="loading-spinner"></span>
                         </template>
@@ -444,8 +445,9 @@
                     </button>
                 </div>
 
-                <form id="add-event-form" :action="isEditMode ? `/admin/events/${selectedEvent?.id}` : '{{ route('admin.events.store') }}'" method="POST"
-                    enctype="multipart/form-data" class="modal-form-content">
+                <form id="add-event-form"
+                    :action="isEditMode ? `/admin/events/${selectedEvent?.id}` : '{{ route('admin.events.store') }}'"
+                    method="POST" enctype="multipart/form-data" class="modal-form-content">
                     @csrf
                     <input type="hidden" name="_method" :value="isEditMode ? 'PUT' : 'POST'">
                     <div class="modal-layout">
@@ -455,11 +457,11 @@
                                 <label>Poster Event<span>*</span></label>
                                 <div class="poster-preview-area"
                                     :class="{ 'has-image': (isEditMode ? (selectedEvent?.poster || newPosterPreview) : newPosterPreview) }">
-                                    <template
-                                        x-if="(newPosterPreview || (isEditMode && selectedEvent?.poster))">
+                                    <template x-if="(newPosterPreview || (isEditMode && selectedEvent?.poster))">
                                         <div style="width: 100%; height: 100%; position: relative;">
                                             <img :src="newPosterPreview || (isEditMode ? selectedEvent?.poster : '')"
-                                                alt="Preview" @click="!isViewOnly && $refs.posterInput.click()" :style="!isViewOnly ? 'cursor: pointer' : ''">
+                                                alt="Preview" @click="!isViewOnly && $refs.posterInput.click()"
+                                                :style="!isViewOnly ? 'cursor: pointer' : ''">
                                             <button type="button" class="change-poster-btn"
                                                 @click="$refs.posterInput.click()" x-show="!isViewOnly">
                                                 <i data-lucide="edit-3"
@@ -467,8 +469,7 @@
                                             </button>
                                         </div>
                                     </template>
-                                    <template
-                                        x-if="!(newPosterPreview || (isEditMode && selectedEvent?.poster))">
+                                    <template x-if="!(newPosterPreview || (isEditMode && selectedEvent?.poster))">
                                         <div class="poster-placeholder-text" @click="$refs.posterInput.click()"
                                             style="cursor: pointer;">
                                             <i data-lucide="image"></i>
@@ -488,8 +489,7 @@
                                         <label class="category-chip">
                                             <input type="radio" name="category_id" :value="cat.category_id"
                                                 :checked="isEditMode && selectedEvent?.category_id == cat.category_id"
-                                                :disabled="isViewOnly"
-                                                :required="!isEditMode">
+                                                :disabled="isViewOnly" :required="!isEditMode">
                                             <div class="chip-content" x-text="cat.name_category"></div>
                                         </label>
                                     </template>
@@ -572,7 +572,8 @@
                     <div class="modal-footer-actions" style="padding: 20px 28px;">
                         <button type="button" @click="showAddModal = false" class="btn-cancel"
                             x-text="isViewOnly ? 'Tutup' : 'Batal'"></button>
-                        <button type="submit" class="btn-save" x-show="!isViewOnly" x-text="isEditMode ? 'Update Event' : 'Simpan Event'"></button>
+                        <button type="submit" class="btn-save" x-show="!isViewOnly"
+                            x-text="isEditMode ? 'Update Event' : 'Simpan Event'"></button>
                     </div>
                 </form>
             </div>
@@ -590,8 +591,9 @@
             --warning: #F59E0B;
             --danger: #EF4444;
             --orange: #F97316;
-            --bg-glass: rgba(255, 255, 255, 0.8);
         }
+
+
 
         /* Add your existing styles plus these critical ones */
         [x-cloak] {
@@ -638,27 +640,146 @@
             transform: scale(1);
         }
 
+        /* Layout & Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-sublabel {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Filter Pills */
+        .category-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .pill-btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pill-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .pill-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
         /* Table styles */
+        .table-container {
+            background: var(--bg-white) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
         .premium-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
+            background: transparent !important;
         }
 
         .premium-table th {
             text-align: left;
-            padding: 1rem;
-            background: #F8FAFC;
-            color: #475569;
-            font-weight: 600;
-            font-size: 0.875rem;
+            padding: 16px 20px;
+            background: var(--bg-main);
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .premium-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #E2E8F0;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        .premium-table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .premium-table tbody tr:hover td {
+            background-color: var(--bg-hover) !important;
+        }
+
+        .premium-table tbody tr:hover {
+            background-color: var(--bg-hover) !important;
         }
 
         .badge-table {
@@ -700,12 +821,12 @@
             gap: 12px;
             padding: 16px 24px;
             border-radius: 12px;
-            background: #fff;
+            background: var(--bg-white);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            color: #1E293B;
+            color: var(--text-main);
             font-weight: 600;
             min-width: 300px;
-            border-left: 4px solid #E2E8F0;
+            border-left: 4px solid var(--border-color);
         }
 
         .toast-success {
@@ -729,6 +850,7 @@
             transform: translateX(20px);
             opacity: 0;
         }
+
         .pending-section {
             margin: 1.5rem 0;
             background: transparent;
@@ -745,7 +867,7 @@
 
         .pending-section .section-header h3 {
             font-size: 1.25rem;
-            color: #1E293B;
+            color: var(--text-main);
             font-weight: 700;
         }
 
@@ -763,8 +885,8 @@
 
         .pending-card {
             display: flex;
-            background: #FEF3E2;
-            border: 1px solid #FFEDD5;
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 12px 16px;
             gap: 15px;
@@ -788,11 +910,11 @@
         .poster-placeholder {
             width: 100%;
             height: 100%;
-            background: #F1F5F9;
+            background: var(--bg-main);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #94A3B8;
+            color: var(--text-muted);
         }
 
         .pending-card-mid {
@@ -825,7 +947,7 @@
 
         .event-title {
             font-size: 1rem;
-            color: #1E293B;
+            color: var(--text-main);
             font-weight: 700;
             margin-bottom: 4px;
         }
@@ -846,7 +968,7 @@
 
         .submitter-name {
             font-weight: 700;
-            color: #475569;
+            color: var(--text-muted);
         }
 
         .pending-card-right {
@@ -857,7 +979,7 @@
         }
 
         .pending-card-right .btn {
-            background: white;
+            background: var(--bg-white);
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.8rem;
@@ -866,14 +988,15 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            border: 1px solid transparent;
+            border: 1px solid var(--border-color);
             cursor: pointer;
             transition: all 0.2s;
+            color: var(--text-main);
         }
 
         .btn-action-outline {
-            border-color: #E2E8F0 !important;
-            color: #475569 !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-muted) !important;
         }
 
         .btn-action-success {
@@ -886,10 +1009,118 @@
             color: #EF4444 !important;
         }
 
-        .btn-action-outline:hover { background: #F8FAFC; }
-        .btn-action-success:hover { background: #F0FDF4; }
-        .btn-action-danger:hover { background: #FEF2F2; }
+        .btn-action-outline:hover {
+            background: var(--bg-hover);
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
 
+        .btn-action-success:hover {
+            background: #F0FDF4;
+            color: #059669 !important;
+            border-color: #059669 !important;
+        }
+
+        .btn-action-danger:hover {
+            background: #FEF2F2;
+            color: #DC2626 !important;
+            border-color: #DC2626 !important;
+        }
+
+        /* Action Icon Buttons in Table */
+        .cell-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-icon-btn {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-main);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-icon-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-main);
+            border-color: #CBD5E1;
+            transform: translateY(-1px);
+        }
+
+        .action-icon-btn.text-primary:hover {
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            background: var(--bg-hover) !important;
+        }
+
+        .action-icon-btn.text-danger:hover {
+            color: var(--danger) !important;
+            border-color: var(--danger) !important;
+            background: var(--bg-hover) !important;
+        }
+
+        /* Pagination */
+        .pagination-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .pagination-info {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .pagination-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-nav-btn,
+        .page-num-btn {
+            height: 38px;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-nav-btn:hover:not(:disabled),
+        .page-num-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .page-num-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .page-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 @endpush
 

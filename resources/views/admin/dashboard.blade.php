@@ -433,13 +433,13 @@
     .dark .chart-container, 
     .dark .activity-container, 
     .dark .announcements-card {
-        background: #1E293B;
-        border-color: #334155;
+        background: var(--bg-white);
+        border-color: var(--border-color);
     }
 
     .dark .announcement-item {
-        background: #0F172A;
-        border-color: #1E293B;
+        background: var(--bg-main);
+        border-color: var(--border-color);
     }
 
     .dark .alert-bar {

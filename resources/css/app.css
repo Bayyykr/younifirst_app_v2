@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --primary: #3B82F6;
+    --primary-light: #EDF3FF;
+    --bg-main: #F8FAFC;
+    --bg-white: #FFFFFF;
+    --text-main: #1E293B;
+    --text-muted: #64748B;
+    --border-color: #F1F5F9;
+    --danger: #EF4444;
+}
+
+.dark {
+    --bg-main: #0F172A;
+    --bg-white: #1E293B;
+    --text-main: #F1F5F9;
+    --text-muted: #94A3B8;
+    --border-color: #334155;
+    --primary-light: rgba(59, 130, 246, 0.1);
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    transition: background-color 0.3s, color 0.3s;
+}

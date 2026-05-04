@@ -7,11 +7,20 @@ use App\Models\Views\ViewTeam;
 use App\Models\Views\ViewTeamMember;
 use App\Models\Team;
 use App\Models\TeamMember;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TeamController extends Controller
 {
+    protected $firebase;
+
+    public function __construct(FirebaseService $firebase)
+    {
+        $this->firebase = $firebase;
+    }
+
     public function index()
     {
         $teamsRaw = ViewTeam::orderBy('created_at', 'desc')->get();
@@ -69,39 +78,75 @@ class TeamController extends Controller
             'type'   => 'required|in:team,member',
         ]);
 
-        $message = DB::transaction(function () use ($id, $request) {
+        $message = DB::transaction(function () use ($id, $request, &$targetUser, &$notificationData) {
             if ($request->type === 'team') {
                 $team = Team::where('team_id', $id)->firstOrFail();
+                $leader = TeamMember::where('team_id', $id)->where('role', 'leader')->with('user')->first();
+                $targetUser = $leader ? $leader->user : null;
+                
                 if ($request->action === 'approve') {
                     $team->update(['status' => 'approved']);
-                    
-                    // Activate leader status
-                    TeamMember::where('team_id', $id)
-                        ->where('role', 'leader')
-                        ->update(['status' => 'active']);
-                        
-                    return 'Tim berhasil disetujui.';
+                    TeamMember::where('team_id', $id)->where('role', 'leader')->update(['status' => 'active']);
+                    $statusText = 'disetujui';
+                    $msg = 'Tim berhasil disetujui.';
                 } else {
                     $team->update(['status' => 'rejected']);
-                    
-                    // Reject leader status
-                    TeamMember::where('team_id', $id)
-                        ->where('role', 'leader')
-                        ->update(['status' => 'rejected']);
-                        
-                    return 'Tim telah ditolak.';
+                    TeamMember::where('team_id', $id)->where('role', 'leader')->update(['status' => 'rejected']);
+                    $statusText = 'ditolak';
+                    $msg = 'Tim telah ditolak.';
                 }
+
+                $notificationData = [
+                    'title' => "Update Status Tim",
+                    'body'  => "Pengajuan tim '{$team->team_name}' Anda telah {$statusText}.",
+                    'data'  => [
+                        'team_id' => (string) $team->team_id,
+                        'type'    => 'team_status_update'
+                    ]
+                ];
+
+                return $msg;
             } else {
-                $member = TeamMember::where('member_id', $id)->firstOrFail();
+                $member = TeamMember::where('member_id', $id)->with(['user', 'team'])->firstOrFail();
+                $targetUser = $member->user;
+                $teamName = $member->team->team_name ?? 'Tim';
+
                 if ($request->action === 'approve') {
                     $member->update(['status' => 'active']);
-                    return 'Permohonan bergabung disetujui.';
+                    $statusText = 'disetujui';
+                    $msg = 'Permohonan bergabung disetujui.';
                 } else {
                     $member->update(['status' => 'rejected']);
-                    return 'Permohonan bergabung ditolak.';
+                    $statusText = 'ditolak';
+                    $msg = 'Permohonan bergabung ditolak.';
                 }
+
+                $notificationData = [
+                    'title' => "Update Permohonan Tim",
+                    'body'  => "Permohonan bergabung ke tim '{$teamName}' Anda telah {$statusText}.",
+                    'data'  => [
+                        'team_id' => (string) $member->team_id,
+                        'type'    => 'member_status_update'
+                    ]
+                ];
+
+                return $msg;
             }
         });
+
+        // Send Push Notification
+        if (isset($targetUser) && $targetUser->fcm_token && isset($notificationData)) {
+            try {
+                $this->firebase->sendNotification(
+                    $targetUser->fcm_token,
+                    $notificationData['title'],
+                    $notificationData['body'],
+                    $notificationData['data']
+                );
+            } catch (\Throwable $e) {
+                Log::warning("FCM Notification failed for user {$targetUser->user_id}: " . $e->getMessage());
+            }
+        }
 
         if ($request->ajax()) {
             return response()->json(['message' => $message]);

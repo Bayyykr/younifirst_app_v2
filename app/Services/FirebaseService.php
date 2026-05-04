@@ -123,7 +123,8 @@ class FirebaseService
     {
         try {
             $notification = \Kreait\Firebase\Messaging\Notification::create($title, $body);
-            $message = \Kreait\Firebase\Messaging\CloudMessage::withTarget('token', $fcmToken)
+            $message = \Kreait\Firebase\Messaging\CloudMessage::new()
+                ->withToken($fcmToken)
                 ->withNotification($notification)
                 ->withData($data);
 

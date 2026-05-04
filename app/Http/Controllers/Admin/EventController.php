@@ -110,7 +110,7 @@ class EventController extends Controller
                 $creator = $event->creator;
                 if ($creator && $creator->fcm_token) {
                     $statusText = ($request->action === 'approve') ? 'disetujui' : 'ditolak';
-                    $this->firebase->sendNotification(
+                    $success = $this->firebase->sendNotification(
                         $creator->fcm_token,
                         "Update Status Event",
                         "Event '{$event->title}' Anda telah {$statusText}.",
@@ -120,6 +120,14 @@ class EventController extends Controller
                             'type'     => 'event_status_update'
                         ]
                     );
+                    
+                    if ($success) {
+                        Log::info("FCM: Event notification sent to user {$creator->user_id} (Token: " . substr($creator->fcm_token, 0, 10) . "...)");
+                    } else {
+                        Log::warning("FCM: Event notification failed to send to user {$creator->user_id}");
+                    }
+                } else {
+                    Log::info("FCM: Event notification skipped. Creator found: " . ($creator ? 'Yes' : 'No') . ", Token found: " . ($creator && $creator->fcm_token ? 'Yes' : 'No'));
                 }
             } catch (\Throwable $e) {
                 Log::warning("FCM Notification failed but proceeding: " . $e->getMessage());

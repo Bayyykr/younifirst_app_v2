@@ -66,7 +66,7 @@
             </thead>
             <tbody>
                 <template x-for="item in paginatedItems" :key="item.id">
-                    <tr>
+                    <tr class="table-row-hover">
                         <td>
                             <div class="item-cell">
                                 <div class="item-img-container">
@@ -102,10 +102,10 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <button title="View" class="action-btn text-neutral" @click="openDetailModal(item)">
+                                <button title="View" class="action-btn" @click="openDetailModal(item)">
                                     <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
                                 </button>
-                                <button x-show="item.status !== 'claimed'" title="Mark as Resolved" class="action-btn text-neutral" @click="openResolveModal(item)">
+                                <button x-show="item.status !== 'claimed'" title="Mark as Resolved" class="action-btn text-primary" @click="openResolveModal(item)">
                                     <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
                                 </button>
                                 <button title="Delete" class="action-btn text-danger" @click="openDeleteModal(item)">
@@ -348,6 +348,15 @@
 </div>
 
 <style>
+    html.dark {
+        --bg-main: #0F172A !important;
+        --bg-white: #1E293B !important;
+        --text-main: #F1F5F9 !important;
+        --text-muted: #94A3B8 !important;
+        --border-color: #334155 !important;
+        --bg-hover: #2D3748 !important;
+    }
+
 /* Dashboard Styling */
 .page-title {
     font-size: 1.5rem;
@@ -364,10 +373,10 @@
 }
 
 .stat-card {
-    background: white;
+    background: var(--bg-white);
     padding: 1.5rem;
     border-radius: 1rem;
-    border: 1px solid #F3F4F6;
+    border: 1px solid var(--border-color);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s;
 }
@@ -379,7 +388,7 @@
 .stat-label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: #6B7280;
+    color: var(--text-muted);
     display: block;
     margin-bottom: 0.5rem;
 }
@@ -388,6 +397,7 @@
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 0.25rem;
+    color: var(--text-main);
 }
 
 .stat-sublabel {
@@ -423,8 +433,9 @@
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.5rem;
     border-radius: 0.75rem;
-    background: white;
-    border: 1px solid #E5E7EB;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
 }
 
 .filter-actions {
@@ -435,9 +446,10 @@
 .status-filter {
     padding: 0.75rem 2.5rem 0.75rem 1rem;
     border-radius: 0.75rem;
-    border: 1px solid #E5E7EB;
-    background: white;
+    border: 1px solid var(--border-color);
+    background: var(--bg-white);
     font-size: 0.875rem;
+    color: var(--text-main);
 }
 
 .btn-primary {
@@ -476,14 +488,14 @@
 }
 
 .btn-secondary:hover {
-    background: #F9FAFB;
+    background: var(--bg-hover);
 }
 
 /* Table Styling */
 .table-card {
-    background: white;
+    background: var(--bg-white);
     border-radius: 1rem;
-    border: 1px solid #F3F4F6;
+    border: 1px solid var(--border-color);
     overflow: hidden;
 }
 
@@ -495,19 +507,30 @@
 .data-table th {
     text-align: left;
     padding: 1rem 1.5rem;
-    background: #F9FAFB;
+    background: var(--bg-main);
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    color: #6B7280;
+    color: var(--text-muted);
     letter-spacing: 0.05em;
-    border-bottom: 1px solid #F3F4F6;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .data-table td {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #F3F4F6;
+    border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
+    color: var(--text-main);
+    background: transparent;
+}
+
+.data-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.data-table tbody tr:hover td,
+.data-table tbody tr:hover {
+    background-color: var(--bg-hover) !important;
 }
 
 .item-cell {
@@ -544,7 +567,7 @@
 
 .item-name {
     font-weight: 600;
-    color: #111827;
+    color: var(--text-main);
     font-size: 0.9375rem;
 }
 
@@ -587,23 +610,34 @@
 }
 
 .action-btn {
-    width: 36px;
-    height: 36px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
+    width: 34px;
+    height: 34px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748B;
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .action-btn:hover {
-    background: #F1F5F9;
-    border-color: #CBD5E1;
+    background: var(--bg-hover) !important;
+    color: var(--text-main) !important;
+    border-color: #CBD5E1 !important;
     transform: translateY(-1px);
+}
+
+.action-btn.text-primary:hover {
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+.action-btn.text-danger:hover {
+    color: var(--danger) !important;
+    border-color: var(--danger) !important;
 }
 
 /* Custom Pagination styles matching layout */
@@ -612,17 +646,17 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.5rem;
-    background: white;
+    background: var(--bg-white);
 }
 .pagination-info { font-size: 0.875rem; color: #6B7280; }
 .pagination-buttons { display: flex; align-items: center; gap: 0.5rem; }
 .pagination-btn {
     padding: 0.5rem 0.75rem;
-    border: 1px solid #E5E7EB;
-    background: white;
+    border: 1px solid var(--border-color);
+    background: var(--bg-white);
     border-radius: 0.5rem;
     font-size: 0.875rem;
-    color: #374151;
+    color: var(--text-main);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -648,13 +682,14 @@
 .modal-container {
     width: 100%;
     max-width: 650px;
-    background: #fff;
+    background: var(--bg-white);
     border-radius: 24px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     animation: modalSlideUp 0.3s ease-out;
+    border: 1px solid var(--border-color);
 }
 
 @keyframes modalSlideUp {
@@ -664,20 +699,20 @@
 
 .modal-header {
     padding: 24px 30px;
-    border-bottom: 1px solid #F1F5F9;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #fff;
+    background: var(--bg-white);
     flex-shrink: 0;
 }
 
-.modal-header h3 { font-size: 18px; font-weight: 700; color: #1E293B; }
+.modal-header h3 { font-size: 18px; font-weight: 700; color: var(--text-main); }
 .modal-body { padding: 30px; max-height: 60vh; overflow-y: auto; flex-grow: 1; }
 .modal-footer {
     padding: 24px 30px;
-    background: #F8FAFC;
-    border-top: 1px solid #F1F5F9;
+    background: var(--bg-main);
+    border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
     gap: 12px;
@@ -689,8 +724,8 @@
 .form-group { display: flex; flex-direction: column; gap: 8px; }
 .form-group label { font-size: 14px; font-weight: 600; color: #475569; }
 .form-group input, .form-group select, .form-group textarea { 
-    padding: 12px 16px; border: 1.5px solid #E2E8F0; border-radius: 12px; font-size: 14px; 
-    transition: all 0.2s; background: #fff; color: #1E293B;
+    padding: 12px 16px; border: 1.5px solid var(--border-color); border-radius: 12px; font-size: 14px; 
+    transition: all 0.2s; background: var(--bg-white); color: var(--text-main);
 }
 .form-group input::placeholder, .form-group textarea::placeholder { color: #94A3B8; }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
@@ -699,9 +734,9 @@
 
 .close-btn { 
     width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    border: none; background: #F8FAFC; color: #64748B; cursor: pointer; transition: all 0.2s;
+    border: none; background: var(--bg-main); color: var(--text-muted); cursor: pointer; transition: all 0.2s;
 }
-.close-btn:hover { background: #FEF2F2; color: #EF4444; }
+.close-btn:hover { background: var(--bg-hover); color: #EF4444; }
 
 /* Helpers */
 .text-success { color: #10B981; }
@@ -725,7 +760,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    background: white;
+    background: var(--bg-white);
     padding: 16px 24px;
     border-radius: 16px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -733,6 +768,7 @@
     border-left: 6px solid #10B981;
     pointer-events: auto;
     animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    color: var(--text-main);
 }
 
 .toast-success { border-color: #10B981; }
@@ -753,7 +789,7 @@
 .toast-content p {
     font-size: 14px;
     font-weight: 600;
-    color: #1E293B;
+    color: var(--text-main);
     margin: 0;
 }
 
