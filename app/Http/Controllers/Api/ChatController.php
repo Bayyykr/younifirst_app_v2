@@ -49,6 +49,8 @@ class ChatController extends Controller
 
             return response()->json([
                 'status' => 'success',
+                'firebase_token' => $customToken->toString(),
+                'user_id' => $uid,
                 'data' => [
                     'firebase_token' => $customToken->toString(),
                     'user_id' => $uid,

@@ -17,10 +17,16 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectTo(
             guests: '/login',
-            users: '/admin/dashboard',
+            users: function ($request) {
+                if (auth()->check() && auth()->user()->role === 'satpam') {
+                    return route('admin.lostfound');
+                }
+                return route('admin.dashboard');
+            },
         );
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

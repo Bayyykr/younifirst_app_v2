@@ -50,12 +50,12 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        if (Auth::user()->role !== 'admin') {
+        if (!in_array(Auth::user()->role, ['admin', 'satpam'])) {
             Auth::logout();
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => 'Hanya admin yang dapat masuk ke dashboard ini.',
+                'email' => 'Hanya admin atau petugas yang dapat masuk ke dashboard ini.',
             ]);
         }
 

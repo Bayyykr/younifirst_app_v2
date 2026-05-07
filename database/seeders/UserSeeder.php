@@ -27,6 +27,21 @@ class UserSeeder extends Seeder
             ]
         );
 
+        // 2. Satpam
+        \App\Models\User::updateOrCreate(
+            ['email' => 'satpam@younifirst.com'],
+            [
+                'user_id'    => 'STP0000001',
+                'name'       => 'Security Younifirst',
+                'role'       => 'satpam',
+                'nim'        => null,
+                'prodi'      => null,
+                'password'   => Hash::make('satpam123'),
+                'status'     => 'active',
+                'created_at' => now(),
+            ]
+        );
+
         $students = [
             [
                 'user_id'  => 'USR41240',

@@ -13,6 +13,7 @@
     </div>
 
     <nav class="sidebar-nav">
+        @if(auth()->user()->role === 'admin')
         <a href="{{ route('admin.dashboard') }}"
             class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <i data-lucide="layout-dashboard"></i>
@@ -34,6 +35,8 @@
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Team Monitoring</span>
         </a>
+        @endif
+
         <a href="{{ route('admin.lostfound') }}"
             class="nav-item {{ request()->routeIs('admin.lostfound') ? 'active' : '' }}">
             <i data-lucide="search"></i>
@@ -41,6 +44,7 @@
                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Lost and Found</span>
         </a>
 
+        @if(auth()->user()->role === 'admin')
         <div class="nav-divider"></div>
 
         <a href="{{ route('admin.announcement') }}"
@@ -49,7 +53,8 @@
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Announcement</span>
         </a>
-        <a href="#" class="nav-item {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
+        @endif
+        <a href="{{ route('profile.edit') }}" class="nav-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
             <i data-lucide="settings"></i>
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Settings</span>
