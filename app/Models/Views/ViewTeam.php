@@ -20,10 +20,15 @@ class ViewTeam extends Model
 
     protected $casts = [
         'created_at'            => 'datetime',
-        'updated_at'            => 'datetime',
-        'deleted_at'            => 'datetime',
+        'update_at'             => 'datetime',
+        'delete_at'             => 'datetime',
         'max_member'            => 'integer',
         'current_member_count'  => 'integer',
         'pending_member_count'  => 'integer',
     ];
+
+    public function members()
+    {
+        return $this->hasMany(\App\Models\Views\ViewTeamMember::class, 'team_id', 'team_id');
+    }
 }

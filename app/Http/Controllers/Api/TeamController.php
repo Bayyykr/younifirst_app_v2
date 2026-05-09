@@ -18,7 +18,7 @@ class TeamController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ViewTeam::where('status', 'approved');
+        $query = ViewTeam::with('members')->where('status', 'approved');
 
         if ($request->filled('search')) {
             $q = $request->search;
@@ -46,7 +46,7 @@ class TeamController extends Controller
      */
     public function show(string $team_id)
     {
-        $team = ViewTeam::where('team_id', $team_id)->firstOrFail();
+        $team = ViewTeam::with('members')->where('team_id', $team_id)->firstOrFail();
         return response()->json(['data' => $team]);
     }
 

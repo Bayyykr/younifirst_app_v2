@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Auth Status & Logout
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return $request->user()->load(['teams.members']);
     });
     // ── USERS ────────────────────────────────────────────────
     Route::prefix('users')->controller(UserController::class)->group(function () {

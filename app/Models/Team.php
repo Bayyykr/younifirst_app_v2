@@ -17,8 +17,8 @@ class Team extends Model
     public $timestamps = false;
 
     const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
-    const DELETED_AT = 'deleted_at';
+    const UPDATED_AT = 'update_at';
+    const DELETED_AT = 'delete_at';
 
     protected $fillable = [
         'team_id', 'team_name', 'competition_name',
@@ -27,8 +27,8 @@ class Team extends Model
 
     protected $casts = [
         'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'update_at'  => 'datetime',
+        'delete_at'  => 'datetime',
     ];
 
     public function members()
