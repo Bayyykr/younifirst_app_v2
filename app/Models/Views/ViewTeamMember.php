@@ -17,4 +17,11 @@ class ViewTeamMember extends Model
     public $timestamps = false;
 
     protected $guarded = ['*'];
+
+    protected $appends = ['portfolio_url'];
+
+    public function getPortfolioUrlAttribute()
+    {
+        return $this->portfolio ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->portfolio) : null;
+    }
 }

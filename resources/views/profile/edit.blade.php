@@ -13,11 +13,16 @@
         <div class="settings-sidebar">
             <div class="profile-card">
                 <div class="avatar-edit-wrapper">
-                    <img src="{{ $user->photo ? asset('storage/' . $user->photo) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=3B82F6&color=fff' }}" 
+                    <img src="{{ $user->photo_url }}" 
                          alt="Avatar" class="profile-avatar-large">
-                    <button class="camera-btn">
+                    <button class="camera-btn" @click="$refs.photoInput.click()">
                         <i data-lucide="camera"></i>
                     </button>
+                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" x-ref="photoForm" style="display: none;">
+                        @csrf
+                        @method('patch')
+                        <input type="file" name="photo" x-ref="photoInput" accept="image/*" @change="$refs.photoForm.submit()">
+                    </form>
                 </div>
                 <h3 class="profile-name-large">{{ $user->name }}</h3>
                 <p class="profile-role-text">{{ ucfirst($user->role) }}</p>

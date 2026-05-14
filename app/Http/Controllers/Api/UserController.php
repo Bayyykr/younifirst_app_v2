@@ -167,6 +167,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name'  => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:users,email,' . $user->user_id . ',user_id',
             'nim'   => 'nullable|string|max:15',
             'prodi' => 'nullable|string|max:50',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
@@ -181,7 +182,12 @@ class UserController extends Controller
             $user->photo = $path;
         }
 
-        $user->fill($request->only(['name', 'nim', 'prodi']));
+        $user->fill($request->only(['name', 'email', 'nim', 'prodi']));
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
         $user->save();
 
         return response()->json([

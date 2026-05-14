@@ -140,6 +140,10 @@ class TeamController extends Controller
         
         $team = Team::where('team_id', $team_id)->firstOrFail();
 
+        $validated = $request->validate([
+            'portfolio' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120', // PDF or Image, max 5MB
+        ]);
+
         if ($team->status !== 'approved') {
             return response()->json(['message' => 'You cannot join a team that is not yet approved by admin'], 422);
         }
@@ -163,6 +167,12 @@ class TeamController extends Controller
         $member->user_id   = $user->user_id;
         $member->role      = 'member';
         $member->status    = 'pending'; // Set to pending by default
+
+        if ($request->hasFile('portfolio')) {
+            $path = $request->file('portfolio')->store('portfolios', 'public');
+            $member->portfolio = $path;
+        }
+
         $member->save();
 
         return response()->json([

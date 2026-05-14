@@ -59,15 +59,39 @@ class EventController extends Controller
                    ? $request->input('sort_by') : 'created_at';
         $sortDir = $request->input('sort_dir', 'desc') === 'asc' ? 'asc' : 'desc';
 
-        return response()->json($query->orderBy($sortBy, $sortDir)->paginate($perPage));
+        $events = $query->orderBy($sortBy, $sortDir)->paginate($perPage);
+
+        // Attach is_liked status for the current user
+        if ($request->user()) {
+            $userLikedEventIds = EventLike::where('user_id', $request->user()->user_id)
+                ->whereIn('event_id', $events->pluck('event_id'))
+                ->pluck('event_id')
+                ->toArray();
+
+            $events->getCollection()->transform(function ($event) use ($userLikedEventIds) {
+                $event->is_liked = in_array($event->event_id, $userLikedEventIds);
+                return $event;
+            });
+        }
+
+        return response()->json($events);
     }
 
     /**
      * GET /api/events/{event_id}
      */
-    public function show(string $event_id)
+    public function show(string $event_id, Request $request)
     {
         $event = ViewEvent::where('event_id', $event_id)->firstOrFail();
+        
+        if ($request->user()) {
+            $event->is_liked = EventLike::where('event_id', $event_id)
+                ->where('user_id', $request->user()->user_id)
+                ->exists();
+        } else {
+            $event->is_liked = false;
+        }
+
         return response()->json(['data' => $event]);
     }
 
@@ -194,10 +218,8 @@ class EventController extends Controller
         if ($existingLike) {
             // UNLIKE
             $existingLike->delete();
-            return response()->json([
-                'message' => 'Event unliked successfully',
-                'status'  => 'unliked'
-            ]);
+            $status = 'unliked';
+            $isLiked = false;
         } else {
             // LIKE
             $like = new EventLike();
@@ -206,12 +228,18 @@ class EventController extends Controller
             $like->user_id    = $user->user_id;
             $like->created_at = \Illuminate\Support\Carbon::now();
             $like->save();
-
-            return response()->json([
-                'message' => 'Event liked successfully',
-                'status'  => 'liked',
-                'data'    => $like
-            ], 201);
+            $status = 'liked';
+            $isLiked = true;
         }
+
+        // 3. Get fresh total likes count
+        $likesCount = EventLike::where('event_id', $event_id)->count();
+
+        return response()->json([
+            'message'     => $status === 'liked' ? 'Event liked successfully' : 'Event unliked successfully',
+            'status'      => $status,
+            'likes_count' => $likesCount,
+            'is_liked'    => $isLiked
+        ]);
     }
 }

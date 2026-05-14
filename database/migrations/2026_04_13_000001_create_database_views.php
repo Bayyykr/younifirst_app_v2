@@ -32,6 +32,7 @@ return new class extends Migration
                 role,
                 nim,
                 prodi,
+                photo,
                 status,
                 created_at
             FROM users

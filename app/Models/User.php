@@ -70,7 +70,12 @@ class User extends Authenticatable
         return $this->suspensions()->latest()->first();
     }
 
-    protected $appends = ['active_suspension'];
+    public function getPhotoUrlAttribute()
+    {
+        return $this->photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->photo) : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=3B82F6&color=fff';
+    }
+
+    protected $appends = ['active_suspension', 'photo_url'];
 
     public function lostfoundComments()
     {
