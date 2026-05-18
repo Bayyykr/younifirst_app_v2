@@ -66,6 +66,44 @@ class TeamController extends Controller
     }
 
     /**
+     * GET /api/teams/my-applications
+     */
+    public function myApplications(Request $request)
+    {
+        $user = $request->user();
+        $query = ViewTeamMember::where('user_id', $user->user_id)
+            ->where('member_role', 'member');
+
+        if ($request->filled('status')) {
+            $query->where('member_status', $request->status);
+        }
+
+        $perPage = min((int) $request->input('per_page', 15), 100);
+
+        return response()->json($query->orderBy('team_name', 'asc')->paginate($perPage));
+    }
+
+    /**
+     * GET /api/teams/{team_id}/applications
+     */
+    public function applications(string $team_id, Request $request)
+    {
+        $team = Team::where('team_id', $team_id)->firstOrFail();
+
+        $query = ViewTeamMember::where('team_id', $team_id)
+            ->where('member_role', 'member');
+
+        $status = $request->input('status', 'pending');
+        if ($status !== 'all') {
+            $query->where('member_status', $status);
+        }
+
+        $perPage = min((int) $request->input('per_page', 20), 100);
+
+        return response()->json($query->paginate($perPage));
+    }
+
+    /**
      * POST /api/teams
      */
     public function store(Request $request)
@@ -141,7 +179,9 @@ class TeamController extends Controller
         $team = Team::where('team_id', $team_id)->firstOrFail();
 
         $validated = $request->validate([
-            'portfolio' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120', // PDF or Image, max 5MB
+            'portfolio'     => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120', // PDF or Image, max 5MB
+            'proposed_role' => 'required|string|max:100',
+            'description'   => 'required|string|max:1000',
         ]);
 
         if ($team->status !== 'approved') {
@@ -167,6 +207,8 @@ class TeamController extends Controller
         $member->user_id   = $user->user_id;
         $member->role      = 'member';
         $member->status    = 'pending'; // Set to pending by default
+        $member->proposed_role = $validated['proposed_role'];
+        $member->description   = $validated['description'];
 
         if ($request->hasFile('portfolio')) {
             $path = $request->file('portfolio')->store('portfolios', 'public');

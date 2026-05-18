@@ -57,7 +57,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── TEAMS ────────────────────────────────────────────────
     Route::prefix('teams')->controller(TeamController::class)->group(function () {
         Route::get('/', 'index');
+        Route::get('/my-applications', 'myApplications');
         Route::get('/{team_id}', 'show');
+        Route::get('/{team_id}/applications', 'applications');
         Route::get('/{team_id}/members', 'members');
         Route::post('/add', 'store');
         Route::put('/{team_id}', 'update');

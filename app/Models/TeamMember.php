@@ -16,7 +16,7 @@ class TeamMember extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'member_id', 'team_id', 'user_id', 'role', 'status', 'portfolio',
+        'member_id', 'team_id', 'user_id', 'role', 'status', 'portfolio', 'proposed_role', 'description',
     ];
 
     public function team()
