@@ -11,6 +11,7 @@ use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class TeamController extends Controller
 {
@@ -40,17 +41,23 @@ class TeamController extends Controller
             );
 
         $teams = $teamsRaw->where('status', 'approved')->values()->map(fn($team) => [
-            'id'            => $team->team_id,
-            'name'          => $team->team_name,
-            'competition'   => $team->competition_name,
-            'leader_name'   => $team->leader_name,
-            'created_at'    => $team->created_at,
-            'description'   => $team->description,
-            'active_count'  => $team->current_member_count,
-            'pending_count' => $team->pending_member_count,
-            'max_member'    => $team->max_member,
-            'status'        => $team->current_member_count >= $team->max_member ? 'Full' : 'Open',
-            'top_members'   => $membersByTeam->get($team->team_id, []),
+            'id'                 => $team->team_id,
+            'name'               => $team->team_name,
+            'competition'        => $team->competition_name,
+            'leader_name'        => $team->leader_name,
+            'created_at'         => $team->created_at,
+            'description'        => $team->description,
+            'active_count'       => $team->current_member_count,
+            'pending_count'      => $team->pending_member_count,
+            'max_member'         => $team->max_member,
+            'status'             => $team->current_member_count >= $team->max_member ? 'Full' : 'Open',
+            'top_members'        => $membersByTeam->get($team->team_id, []),
+            // Report fields
+            'competition_level'  => $team->competition_level,
+            'achievement_rank'   => $team->achievement_rank,
+            'photo_activity'     => $team->photo_activity ? asset('storage/' . $team->photo_activity) : null,
+            'photo_certificate'  => $team->photo_certificate ? asset('storage/' . $team->photo_certificate) : null,
+            'has_report'         => !empty($team->achievement_rank),
         ]);
 
         $pendingTeams = ViewTeam::where('status', 'pending')
@@ -58,16 +65,17 @@ class TeamController extends Controller
             ->get();
 
         $stats = [
-            'total' => $teams->count(),
-            'open' => $teams->where('status', 'Open')->count(),
-            'full' => $teams->where('status', 'Full')->count(),
-            'pending' => $pendingTeams->count(),
+            'total'          => $teams->count(),
+            'open'           => $teams->where('status', 'Open')->count(),
+            'full'           => $teams->where('status', 'Full')->count(),
+            'pending'        => $pendingTeams->count(),
+            'with_report'    => $teams->where('has_report', true)->count(),
         ];
 
         return view('admin.teams', [
-            'teams' => $teams,
+            'teams'        => $teams,
             'pendingTeams' => $pendingTeams,
-            'stats' => $stats
+            'stats'        => $stats
         ]);
     }
 
@@ -155,9 +163,78 @@ class TeamController extends Controller
         return back()->with('success', $message);
     }
 
+    public function storeReport(Request $request, $id)
+    {
+        $request->validate([
+            'achievement_rank'  => 'required|string|max:50',
+            'competition_level' => 'required|in:kampus,regional,nasional,internasional',
+            'photo_activity'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo_certificate' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ], [
+            'achievement_rank.required'  => 'Prestasi/juara harus diisi.',
+            'competition_level.required' => 'Tingkat lomba harus dipilih.',
+            'photo_activity.image'       => 'File foto kegiatan harus berupa gambar.',
+            'photo_activity.max'         => 'Ukuran foto kegiatan maksimal 5MB.',
+            'photo_certificate.image'    => 'File foto sertifikat harus berupa gambar.',
+            'photo_certificate.max'      => 'Ukuran foto sertifikat maksimal 5MB.',
+        ]);
+
+        $team = Team::where('team_id', $id)->firstOrFail();
+
+        $updateData = [
+            'achievement_rank'  => $request->achievement_rank,
+            'competition_level' => $request->competition_level,
+        ];
+
+        // Handle foto kegiatan
+        if ($request->hasFile('photo_activity')) {
+            // Hapus foto lama jika ada
+            if ($team->photo_activity) {
+                Storage::disk('public')->delete($team->photo_activity);
+            }
+            $updateData['photo_activity'] = $request->file('photo_activity')
+                ->store('teams/activity', 'public');
+        }
+
+        // Handle foto sertifikat
+        if ($request->hasFile('photo_certificate')) {
+            // Hapus foto lama jika ada
+            if ($team->photo_certificate) {
+                Storage::disk('public')->delete($team->photo_certificate);
+            }
+            $updateData['photo_certificate'] = $request->file('photo_certificate')
+                ->store('teams/certificate', 'public');
+        }
+
+        $team->update($updateData);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'message'            => 'Laporan hasil lomba berhasil disimpan.',
+                'achievement_rank'   => $team->fresh()->achievement_rank,
+                'competition_level'  => $team->fresh()->competition_level,
+                'photo_activity'     => $team->fresh()->photo_activity
+                    ? asset('storage/' . $team->fresh()->photo_activity) : null,
+                'photo_certificate'  => $team->fresh()->photo_certificate
+                    ? asset('storage/' . $team->fresh()->photo_certificate) : null,
+            ]);
+        }
+
+        return back()->with('success', 'Laporan hasil lomba berhasil disimpan.');
+    }
+
     public function destroy(Request $request, $id)
     {
         $team = Team::where('team_id', $id)->firstOrFail();
+
+        // Hapus file foto jika ada
+        if ($team->photo_activity) {
+            Storage::disk('public')->delete($team->photo_activity);
+        }
+        if ($team->photo_certificate) {
+            Storage::disk('public')->delete($team->photo_certificate);
+        }
+
         $team->delete(); // Soft delete
 
         if ($request->ajax()) {

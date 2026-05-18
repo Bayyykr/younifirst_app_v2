@@ -25,6 +25,10 @@ class ViewTeam extends Model
         'max_member'            => 'integer',
         'current_member_count'  => 'integer',
         'pending_member_count'  => 'integer',
+        'competition_level'     => 'string',
+        'achievement_rank'      => 'string',
+        'photo_activity'        => 'string',
+        'photo_certificate'     => 'string',
     ];
 
     public function members()

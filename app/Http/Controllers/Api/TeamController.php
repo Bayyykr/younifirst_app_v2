@@ -269,4 +269,76 @@ class TeamController extends Controller
             'data'    => $member
         ]);
     }
+
+    /**
+     * POST /api/teams/{team_id}/report
+     */
+    public function storeReport(Request $request, string $team_id)
+    {
+        $user = $request->user();
+        $team = Team::where('team_id', $team_id)->firstOrFail();
+
+        if ($team->status !== 'approved') {
+            return response()->json(['message' => 'Laporan hanya bisa diunggah untuk tim yang sudah disetujui admin.'], 422);
+        }
+
+        // Pastikan user merupakan bagian dari tim ini (leader maupun member)
+        $isPart = TeamMember::where('team_id', $team_id)
+            ->where('user_id', $user->user_id)
+            ->exists();
+
+        if (!$isPart) {
+            return response()->json(['message' => 'Anda bukan bagian dari tim ini.'], 403);
+        }
+
+        $validated = $request->validate([
+            'achievement_rank'  => 'required|string|max:50',
+            'competition_level' => 'required|in:kampus,regional,nasional,internasional',
+            'photo_activity'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo_certificate' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ], [
+            'achievement_rank.required'  => 'Prestasi/juara harus diisi.',
+            'competition_level.required' => 'Tingkat lomba harus dipilih.',
+            'photo_activity.image'       => 'File foto kegiatan harus berupa gambar.',
+            'photo_activity.max'         => 'Ukuran foto kegiatan maksimal 5MB.',
+            'photo_certificate.image'    => 'File foto sertifikat harus berupa gambar.',
+            'photo_certificate.max'      => 'Ukuran foto sertifikat maksimal 5MB.',
+        ]);
+
+        $updateData = [
+            'achievement_rank'  => $validated['achievement_rank'],
+            'competition_level' => $validated['competition_level'],
+        ];
+
+        // Handle foto kegiatan
+        if ($request->hasFile('photo_activity')) {
+            if ($team->photo_activity) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($team->photo_activity);
+            }
+            $updateData['photo_activity'] = $request->file('photo_activity')
+                ->store('teams/activity', 'public');
+        }
+
+        // Handle foto sertifikat
+        if ($request->hasFile('photo_certificate')) {
+            if ($team->photo_certificate) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($team->photo_certificate);
+            }
+            $updateData['photo_certificate'] = $request->file('photo_certificate')
+                ->store('teams/certificate', 'public');
+        }
+
+        $team->update($updateData);
+
+        return response()->json([
+            'message' => 'Laporan hasil lomba berhasil diunggah.',
+            'data' => [
+                'team_id'           => $team->team_id,
+                'achievement_rank'  => $team->achievement_rank,
+                'competition_level' => $team->competition_level,
+                'photo_activity'    => $team->photo_activity ? asset('storage/' . $team->photo_activity) : null,
+                'photo_certificate' => $team->photo_certificate ? asset('storage/' . $team->photo_certificate) : null,
+            ]
+        ]);
+    }
 }

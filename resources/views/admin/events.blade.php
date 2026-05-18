@@ -24,7 +24,7 @@
                 <div class="stat-card">
                     <span class="stat-label">Upload Request</span>
                     <div class="stat-value text-orange">{{ $stats['pending'] }}</div>
-                    <span class="stat-sublabel text-orange">User awaiting approval &nearr;</span>
+                    <span class="stat-sublabel text-orange">User awaiting approval;</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Rejected</span>

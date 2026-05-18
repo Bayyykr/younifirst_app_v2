@@ -17,18 +17,21 @@ class Team extends Model
     public $timestamps = false;
 
     const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'update_at';
-    const DELETED_AT = 'delete_at';
+    const UPDATED_AT = 'updated_at';
+    const DELETED_AT = 'deleted_at';
 
     protected $fillable = [
         'team_id', 'team_name', 'competition_name',
-        'description', 'max_member', 'status', 'created_at', 'updated_at',
+        'description', 'max_member', 'status',
+        'competition_level', 'achievement_rank',
+        'photo_activity', 'photo_certificate',
+        'created_at', 'updated_at',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
-        'update_at'  => 'datetime',
-        'delete_at'  => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     public function members()

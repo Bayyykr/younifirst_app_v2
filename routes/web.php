@@ -23,7 +23,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::get('/users/export-pdf', [UserController::class, 'exportPdf'])->name('users.export-pdf');
 
         Route::get('/teams', [TeamController::class, 'index'])->name('teams');
-        Route::post('/teams/{member_id}/respond', [TeamController::class, 'respond'])->name('teams.respond');
+        Route::post('/teams/{team_id}/respond', [TeamController::class, 'respond'])->name('teams.respond');
+        Route::post('/teams/{team_id}/report', [TeamController::class, 'storeReport'])->name('teams.report');
         Route::delete('/teams/{team_id}', [TeamController::class, 'destroy'])->name('teams.destroy');
 
         Route::get('/announcement', [AnnouncementController::class, 'index'])->name('announcement');

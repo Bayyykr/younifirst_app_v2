@@ -7,7 +7,9 @@
     <div class="team-monitoring" x-data="teamMonitoring({
         initialTeams: {{ $teams->toJson() }},
         pendingTeams: {{ $pendingTeams->toJson() }},
-        stats: {{ json_encode($stats) }}
+        stats: {{ json_encode($stats) }},
+        reportUrl: '{{ url('/admin/teams') }}',
+        csrfToken: '{{ csrf_token() }}'
     })" x-cloak>
 
         <!-- Modals (Top of Scope) -->
@@ -72,6 +74,73 @@
 
                 <div class="modal-footer-premium">
                     <button type="button" class="btn-secondary" @click="showDetailModal = false">Tutup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Report Modal -->
+        <div x-show="showViewReportModal" class="modal-overlay" x-transition:enter="transition-fade"
+            x-transition:leave="transition-fade" style="display: none; z-index: 9999;">
+            <div class="modal-container" @click.away="showViewReportModal = false"
+                x-transition:enter="modal-slide-in" style="max-width: 600px; text-align: left;">
+                <div class="modal-header-premium">
+                    <div class="header-icon" style="background: #FFF7ED; color: #F97316;">
+                        <i data-lucide="award"></i>
+                    </div>
+                    <div class="header-title-wrapper">
+                        <h3>Detail Laporan Lomba</h3>
+                        <span class="competition-badge" x-text="viewingTeam?.name"></span>
+                    </div>
+                    <button type="button" @click="showViewReportModal = false" class="close-btn">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="modal-body-premium">
+                    <div class="report-info-row">
+                        <div class="report-info-item">
+                            <label>Prestasi</label>
+                            <div class="achievement-display" x-text="viewingTeam?.achievement_rank || '-'"></div>
+                        </div>
+                        <div class="report-info-item">
+                            <label>Tingkat Lomba</label>
+                            <span class="level-badge"
+                                :class="'level-' + (viewingTeam?.competition_level || 'kampus')"
+                                x-text="levelLabel(viewingTeam?.competition_level)"></span>
+                        </div>
+                    </div>
+                    <div class="report-photos-grid">
+                        <div class="report-photo-card">
+                            <label>Foto Kegiatan</label>
+                            <template x-if="viewingTeam?.photo_activity">
+                                <a :href="viewingTeam.photo_activity" target="_blank">
+                                    <img :src="viewingTeam.photo_activity" alt="Foto Kegiatan" class="report-photo">
+                                </a>
+                            </template>
+                            <template x-if="!viewingTeam?.photo_activity">
+                                <div class="no-photo">
+                                    <i data-lucide="image-off" style="width:24px"></i>
+                                    <span>Belum ada foto</span>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="report-photo-card">
+                            <label>Foto Sertifikat</label>
+                            <template x-if="viewingTeam?.photo_certificate">
+                                <a :href="viewingTeam.photo_certificate" target="_blank">
+                                    <img :src="viewingTeam.photo_certificate" alt="Foto Sertifikat" class="report-photo">
+                                </a>
+                            </template>
+                            <template x-if="!viewingTeam?.photo_certificate">
+                                <div class="no-photo">
+                                    <i data-lucide="image-off" style="width:24px"></i>
+                                    <span>Belum ada foto</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer-premium">
+                    <button type="button" class="btn-secondary" @click="showViewReportModal = false">Tutup</button>
                 </div>
             </div>
         </div>
@@ -141,17 +210,17 @@
                 <div class="stat-card">
                     <span class="stat-label">Open Teams</span>
                     <div class="stat-value text-green" x-text="stats.open"></div>
-                    <span class="stat-sublabel text-green">Teams still accepting members &nearr;</span>
+                    <span class="stat-sublabel text-green">Teams still accepting members</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Pending Team</span>
                     <div class="stat-value text-orange" x-text="stats.pending"></div>
-                    <span class="stat-sublabel text-orange">Teams awaiting approval &searr;</span>
+                    <span class="stat-sublabel text-orange">Teams awaiting approval</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Full Teams</span>
                     <div class="stat-value text-red" x-text="stats.full"></div>
-                    <span class="stat-sublabel text-red">Teams at full capacity &nearr;</span>
+                    <span class="stat-sublabel text-red">Teams at full capacity</span>
                 </div>
             </div>
 
@@ -235,6 +304,10 @@
                         @click="statusFilter = 'Open'">Open</button>
                     <button class="pill-btn" :class="{ 'active': statusFilter === 'Full' }"
                         @click="statusFilter = 'Full'">Full</button>
+                    <button class="pill-btn" :class="{ 'active': statusFilter === 'WithReport' }"
+                        @click="statusFilter = 'WithReport'">Ada Laporan</button>
+                    <button class="pill-btn" :class="{ 'active': statusFilter === 'NoReport' }"
+                        @click="statusFilter = 'NoReport'">Belum Laporan</button>
                 </div>
             </div>
 
@@ -298,9 +371,10 @@
                                             @click="openDetailModal(team)">
                                             <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
                                         </button>
-                                        <button type="button" class="action-btn text-primary" title="Edit Team"
-                                            @click="openDetailModal(team)">
-                                            <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
+                                        <button type="button" class="action-btn" title="Lihat Laporan"
+                                            @click="team.has_report ? openViewReportModal(team) : showToast('Tim ini belum mengunggah laporan lomba.', 'error')"
+                                            :style="team.has_report ? 'color: #8B5CF6; border-color: #DDD6FE;' : 'color: #94A3B8; border-color: #E2E8F0; opacity: 0.6; cursor: not-allowed;'">
+                                            <i data-lucide="award" style="width: 18px; height: 18px;"></i>
                                         </button>
                                         <button type="button" class="action-btn text-danger" title="Delete Team"
                                             @click="openDeleteModal(team)">
@@ -1449,6 +1523,307 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* ======= REPORT STYLES ======= */
+
+        /* Report cell in table */
+        .report-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .report-rank {
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #1E293B;
+        }
+
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .level-kampus    { background: #F0F9FF; color: #0369A1; }
+        .level-regional  { background: #F0FDF4; color: #166534; }
+        .level-nasional  { background: #FFF7ED; color: #C2410C; }
+        .level-internasional { background: #FAF5FF; color: #7E22CE; }
+        .level-null, .level-undefined { background: #F8FAFC; color: #64748B; }
+
+        .btn-view-report {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #EFF6FF;
+            color: #3B82F6;
+            border: 1px solid #BFDBFE;
+            cursor: pointer;
+            margin-top: 2px;
+            transition: background 0.2s;
+        }
+
+        .btn-view-report:hover {
+            background: #DBEAFE;
+        }
+
+        .no-report-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #F8FAFC;
+            color: #94A3B8;
+            border: 1px dashed #CBD5E1;
+        }
+
+        /* Report Modal Form */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .required-star {
+            color: #EF4444;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            color: #1E293B;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Level Pills in form */
+        .level-pills {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .level-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1.5px solid #E2E8F0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748B;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+
+        .level-pill:hover {
+            border-color: #93C5FD;
+            background: #EFF6FF;
+            color: #3B82F6;
+        }
+
+        .level-pill.active {
+            border-color: #3B82F6;
+            background: #EFF6FF;
+            color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed #CBD5E1;
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #F8FAFC;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: #93C5FD;
+            background: #EFF6FF;
+        }
+
+        .upload-zone.has-preview {
+            border-style: solid;
+            border-color: #93C5FD;
+            background: #fff;
+            padding: 0.5rem;
+        }
+
+        .upload-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94A3B8;
+            font-size: 0.875rem;
+        }
+
+        .upload-placeholder small {
+            font-size: 0.75rem;
+            color: #CBD5E1;
+        }
+
+        .upload-preview {
+            width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .existing-photo-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .existing-photo-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #64748B;
+            background: #F1F5F9;
+            padding: 2px 8px;
+            border-radius: 9999px;
+        }
+
+        /* Existing report banner */
+        .existing-report-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #F0FDF4;
+            border: 1px solid #A7F3D0;
+            border-radius: 8px;
+            padding: 0.625rem 1rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #065F46;
+        }
+
+        /* View Report Modal */
+        .report-info-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-info-item label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #94A3B8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .achievement-display {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: #1E293B;
+        }
+
+        .report-photos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .report-photo-card {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .report-photo-card label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.75rem;
+        }
+
+        .report-photo {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+
+        .report-photo:hover {
+            transform: scale(1.02);
+        }
+
+        .no-photo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 1.5rem;
+            color: #CBD5E1;
+            font-size: 0.8rem;
+        }
+
+        .btn-primary-outline {
+            background: #fff;
+            border: 1.5px solid #3B82F6;
+            color: #3B82F6;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-outline:hover {
+            background: #EFF6FF;
+        }
     </style>
 @endpush
 
@@ -1458,13 +1833,17 @@
             Alpine.data('teamMonitoring', (config) => ({
                 allTeams: config.initialTeams || [],
                 pendingTeams: config.pendingTeams || [],
-                stats: config.stats || { total: 0, open: 0, full: 0, pending: 0 },
+                stats: config.stats || { total: 0, open: 0, full: 0, pending: 0, with_report: 0 },
+                reportBaseUrl: config.reportUrl || '',
+                csrfToken: config.csrfToken || '',
 
                 search: '',
                 statusFilter: 'Semua',
                 currentPage: 1,
                 perPage: 5,
 
+                showViewReportModal: false,
+                viewingTeam: null,
                 loading: false,
                 showRespondModal: false,
                 showDetailModal: false,
@@ -1494,6 +1873,7 @@
                     this.$watch('showRespondModal', () => this.$nextTick(() => this.reinitIcons()));
                     this.$watch('showDetailModal', () => this.$nextTick(() => this.reinitIcons()));
                     this.$watch('showDeleteModal', () => this.$nextTick(() => this.reinitIcons()));
+                    this.$watch('showViewReportModal', () => this.$nextTick(() => this.reinitIcons()));
                 },
 
                 get filteredTeams() {
@@ -1504,7 +1884,16 @@
                         let matchesSearch = q === '' ||
                             t.name.toLowerCase().includes(q) ||
                             t.competition.toLowerCase().includes(q);
-                        let matchesFilter = f === 'Semua' || t.status === f;
+
+                        let matchesFilter = true;
+                        if (f === 'Open' || f === 'Full') {
+                            matchesFilter = t.status === f;
+                        } else if (f === 'WithReport') {
+                            matchesFilter = t.has_report === true;
+                        } else if (f === 'NoReport') {
+                            matchesFilter = t.has_report !== true;
+                        }
+
                         return matchesSearch && matchesFilter;
                     });
                 },
@@ -1545,6 +1934,21 @@
                 openDeleteModal(team) {
                     this.selectedDeleteTeam = team;
                     this.showDeleteModal = true;
+                },
+
+                openViewReportModal(team) {
+                    this.viewingTeam = team;
+                    this.showViewReportModal = true;
+                },
+
+                levelLabel(level) {
+                    const map = {
+                        kampus: 'Kampus',
+                        regional: 'Regional',
+                        nasional: 'Nasional',
+                        internasional: 'Internasional',
+                    };
+                    return map[level] || level || '-';
                 },
 
                 async confirmDelete() {

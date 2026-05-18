@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{team_id}', 'destroy');
         Route::post('/{team_id}/join', 'join');
         Route::post('/{team_id}/members/{member_id}/respond', 'respondJoin');
+        Route::post('/{team_id}/report', 'storeReport');
     });
 
     // ── ANNOUNCEMENTS ─────────────────────────────────────────
