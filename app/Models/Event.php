@@ -5,9 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Mail\EventCreatedMail;
+use Illuminate\Support\Facades\Mail;
+
 class Event extends Model
 {
     use HasFactory;
+
+    protected static function booted()
+    {
+        static::created(function ($event) {
+            try {
+                $admins = User::where('role', 'admin')
+                    ->where('notify_email', true)
+                    ->where('notify_event', true)
+                    ->get();
+
+                foreach ($admins as $admin) {
+                    Mail::to($admin->email)->send(new EventCreatedMail($event));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim email notifikasi event: ' . $e->getMessage());
+            }
+        });
+    }
 
     protected $table = 'events';
     protected $primaryKey = 'event_id';

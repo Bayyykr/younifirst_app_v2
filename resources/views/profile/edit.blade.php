@@ -7,7 +7,38 @@
 @endpush
 
 @section('content')
-<div class="settings-container" x-data="{ activeTab: 'profile' }">
+<div class="settings-container" x-data="{ 
+    activeTab: 'profile',
+    notifyEmail: {{ $user->notify_email ? 'true' : 'false' }},
+    notifyEvent: {{ $user->notify_event ? 'true' : 'false' }},
+    notifyTeam: {{ $user->notify_team ? 'true' : 'false' }},
+    notifyLostfound: {{ $user->notify_lostfound ? 'true' : 'false' }},
+    saving: false,
+    saveSettings() {
+        this.saving = true;
+        fetch('{{ route('profile.update-notifications') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                notify_email: this.notifyEmail,
+                notify_event: this.notifyEvent,
+                notify_team: this.notifyTeam,
+                notify_lostfound: this.notifyLostfound
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            this.saving = false;
+        })
+        .catch(err => {
+            this.saving = false;
+            console.error(err);
+        });
+    }
+}">
     <div class="settings-grid">
         <!-- Left Column: Profile Card -->
         <div class="settings-sidebar">
@@ -94,8 +125,13 @@
             <!-- Notifications Tab -->
             <div x-show="activeTab === 'notifications'" class="form-card" x-cloak>
                 <div class="card-header-group">
-                    <h2 class="form-title">Pengaturan Notifikasi</h2>
-                    <p class="form-subtitle">Atur notifikasi Anda</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 class="form-title">Pengaturan Notifikasi</h2>
+                            <p class="form-subtitle">Atur notifikasi Anda</p>
+                        </div>
+                        <span x-show="saving" style="font-size: 0.8rem; color: var(--text-muted); display: none;">Menyimpan...</span>
+                    </div>
                 </div>
 
                 <div class="switch-group">
@@ -105,40 +141,40 @@
                             <span class="switch-description">Izinkan Younifirst kirim notifikasi via email</span>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked>
+                            <input type="checkbox" x-model="notifyEmail" @change="if(!notifyEmail) { notifyEvent = false; notifyTeam = false; notifyLostfound = false; } saveSettings();">
                             <span class="slider"></span>
                         </label>
                     </div>
 
-                    <div class="switch-item">
+                    <div class="switch-item" :style="!notifyEmail ? 'opacity: 0.5; pointer-events: none;' : ''">
                         <div class="switch-label-group">
                             <span class="switch-title">Notifikasi Event Baru</span>
                             <span class="switch-description">Notif saat ada event baru menunggu approval</span>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked>
+                            <input type="checkbox" x-model="notifyEvent" :disabled="!notifyEmail" @change="saveSettings();">
                             <span class="slider"></span>
                         </label>
                     </div>
 
-                    <div class="switch-item">
+                    <div class="switch-item" :style="!notifyEmail ? 'opacity: 0.5; pointer-events: none;' : ''">
                         <div class="switch-label-group">
                             <span class="switch-title">Notifikasi Team Baru</span>
                             <span class="switch-description">Notif saat ada tim baru menunggu approval</span>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked>
+                            <input type="checkbox" x-model="notifyTeam" :disabled="!notifyEmail" @change="saveSettings();">
                             <span class="slider"></span>
                         </label>
                     </div>
 
-                    <div class="switch-item">
+                    <div class="switch-item" :style="!notifyEmail ? 'opacity: 0.5; pointer-events: none;' : ''">
                         <div class="switch-label-group">
                             <span class="switch-title">Notifikasi Lost & Found</span>
                             <span class="switch-description">Notif saat ada postingan baru</span>
                         </div>
                         <label class="switch">
-                            <input type="checkbox">
+                            <input type="checkbox" x-model="notifyLostfound" :disabled="!notifyEmail" @change="saveSettings();">
                             <span class="slider"></span>
                         </label>
                     </div>

@@ -20,12 +20,17 @@ class User extends Authenticatable
     protected $fillable = [
         'user_id', 'firebase_uid', 'name', 'email', 'password', 'role',
         'nim', 'prodi', 'photo', 'status', 'fcm_token', 'created_at',
+        'notify_email', 'notify_event', 'notify_team', 'notify_lostfound',
     ];
 
     protected $hidden = ['password'];
 
     protected $casts = [
         'created_at' => 'datetime',
+        'notify_email' => 'boolean',
+        'notify_event' => 'boolean',
+        'notify_team' => 'boolean',
+        'notify_lostfound' => 'boolean',
     ];
 
     public function announcements()

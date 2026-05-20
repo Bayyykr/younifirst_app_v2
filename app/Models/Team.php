@@ -6,9 +6,30 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Mail\TeamCreatedMail;
+use Illuminate\Support\Facades\Mail;
+
 class Team extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected static function booted()
+    {
+        static::created(function ($team) {
+            try {
+                $admins = User::where('role', 'admin')
+                    ->where('notify_email', true)
+                    ->where('notify_team', true)
+                    ->get();
+
+                foreach ($admins as $admin) {
+                    Mail::to($admin->email)->send(new TeamCreatedMail($team));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim email notifikasi team: ' . $e->getMessage());
+            }
+        });
+    }
 
     protected $table = 'teams';
     protected $primaryKey = 'team_id';
