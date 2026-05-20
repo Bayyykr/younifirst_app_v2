@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Laporan User Management - Younifirst</title>
+    <title>Laporan Lost & Found - Younifirst</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -14,7 +14,7 @@
         }
         .header-table {
             width: 100%;
-            border-bottom: 2px solid #3B82F6;
+            border-bottom: 2px solid #F59E0B;
             padding-bottom: 15px;
             margin-bottom: 25px;
         }
@@ -44,7 +44,7 @@
             font-weight: 700;
             color: #1E293B;
             margin: 25px 0 12px 0;
-            border-left: 3px solid #3B82F6;
+            border-left: 3px solid #F59E0B;
             padding-left: 8px;
         }
         .stats-grid {
@@ -69,7 +69,7 @@
         .stats-value {
             font-size: 18px;
             font-weight: 700;
-            color: #3B82F6;
+            color: #F59E0B;
         }
         table.data-table {
             width: 100%;
@@ -77,13 +77,13 @@
             margin-bottom: 25px;
         }
         table.data-table th {
-            background-color: #3B82F6;
+            background-color: #F59E0B;
             color: #FFFFFF;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 9px;
             padding: 8px 10px;
-            border: 1px solid #3B82F6;
+            border: 1px solid #F59E0B;
             text-align: left;
         }
         table.data-table td {
@@ -104,10 +104,9 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-        .badge-active { background: #DCFCE7; color: #15803D; }
-        .badge-inactive { background: #F1F5F9; color: #475569; }
-        .badge-suspended { background: #FEF3C7; color: #D97706; }
-        .badge-blocked { background: #FEE2E2; color: #B91C1C; }
+        .badge-lost { background: #FEE2E2; color: #B91C1C; }
+        .badge-found { background: #FEF3C7; color: #D97706; }
+        .badge-resolved { background: #DCFCE7; color: #15803D; }
         
         .footer-section {
             margin-top: 40px;
@@ -153,7 +152,7 @@
         <tr>
             <td class="logo-title-td">
                 <h1>Younifirst</h1>
-                <p>Laporan Data Pengguna dan Tindakan Moderasi Akun</p>
+                <p>Laporan Rekapitulasi Data Barang Lost & Found</p>
             </td>
             <td class="meta-td">
                 <strong>Dicetak Oleh:</strong> {{ $printedBy->name }} ({{ ucfirst($printedBy->role) }})<br>
@@ -163,93 +162,64 @@
         </tr>
     </table>
 
-    <div class="section-title">Ringkasan Statistik Pengguna</div>
+    <div class="section-title">Ringkasan Barang Lost & Found</div>
     <table class="stats-grid">
         <tr>
             <td class="stats-cell">
-                <div class="stats-label">Total Pengguna</div>
+                <div class="stats-label">Total Laporan</div>
                 <div class="stats-value" style="color: #3B82F6;">{{ $stats['total'] }}</div>
             </td>
             <td class="stats-cell" style="margin-left: 10px;">
-                <div class="stats-label">User Aktif</div>
-                <div class="stats-value" style="color: #10B981;">{{ $stats['active'] }}</div>
+                <div class="stats-label">Belum Ditemukan (Lost)</div>
+                <div class="stats-value" style="color: #EF4444;">{{ $stats['lost'] }}</div>
             </td>
             <td class="stats-cell" style="margin-left: 10px;">
-                <div class="stats-label">User Suspended</div>
-                <div class="stats-value" style="color: #F59E0B;">{{ $stats['suspended'] }}</div>
+                <div class="stats-label">Ditemukan (Found)</div>
+                <div class="stats-value" style="color: #F59E0B;">{{ $stats['found'] }}</div>
             </td>
             <td class="stats-cell" style="margin-left: 10px;">
-                <div class="stats-label">User Blocked</div>
-                <div class="stats-value" style="color: #EF4444;">{{ $stats['blocked'] }}</div>
+                <div class="stats-label">Selesai / Dikembalikan</div>
+                <div class="stats-value" style="color: #10B981;">{{ $stats['resolved'] }}</div>
             </td>
         </tr>
     </table>
 
-    <div class="section-title">Daftar Mahasiswa ({{ $filterLabel ?? 'Semua Status' }})</div>
+    <div class="section-title">Daftar Barang Lost & Found ({{ $filterLabel ?? 'Belum Ditemukan & Selesai' }})</div>
     <table class="data-table">
         <thead>
             <tr>
                 <th style="width: 5%;">No</th>
-                <th style="width: 15%;">NIM</th>
-                <th style="width: 25%;">Nama</th>
-                <th style="width: 25%;">Email</th>
-                <th style="width: 18%;">Program Studi</th>
+                <th style="width: 25%;">Nama Barang</th>
+                <th style="width: 20%;">Dilaporkan Oleh</th>
+                <th style="width: 20%;">Lokasi Kejadian</th>
+                <th style="width: 18%;">Tanggal Laporan</th>
                 <th style="width: 12%;">Status</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($users as $index => $user)
+            @forelse($items as $index => $item)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $user->nim ?? '-' }}</td>
-                <td><strong>{{ $user->name }}</strong></td>
-                <td>{{ $user->email }}</td>
-                <td>{{ $user->prodi ?? '-' }}</td>
                 <td>
-                    <span class="badge badge-{{ strtolower($user->status) }}">
-                        {{ $user->status }}
+                    <strong>{{ $item->item_name }}</strong><br>
+                    <span style="font-size: 8px; color: #64748B;">{{ Str::limit($item->description, 50) }}</span>
+                </td>
+                <td>{{ $item->user->name ?? 'Pengguna' }}</td>
+                <td>{{ $item->location }}</td>
+                <td>{{ $item->created_at->format('d M Y H:i') }} WIB</td>
+                <td>
+                    <span class="badge badge-{{ strtolower($item->status) }}">
+                        {{ $item->status === 'lost' ? 'Lost' : ($item->status === 'found' ? 'Found' : 'Resolved') }}
                     </span>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="6" style="text-align: center;">Tidak ada data mahasiswa ditemukan.</td>
+                <td colspan="6" style="text-align: center;">Tidak ada data barang hilang/ditemukan.</td>
             </tr>
             @endforelse
         </tbody>
     </table>
-
-    @if(count($suspensions) > 0)
-    <div class="section-title" style="page-break-before: always;">Riwayat Tindakan Moderasi</div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th style="width: 5%;">No</th>
-                <th style="width: 25%;">Nama Pengguna</th>
-                <th style="width: 15%;">Durasi / Jenis</th>
-                <th style="width: 30%;">Alasan Penangguhan</th>
-                <th style="width: 25%;">Catatan Internal Admin</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($suspensions as $index => $susp)
-            <tr>
-                <td>{{ $index + 1 }}</td>
-                <td><strong>{{ $susp->user->name ?? 'User dihapus' }}</strong></td>
-                <td>
-                    @if($susp->duration === 'permanent' || $susp->duration === 'custom')
-                        <span class="badge badge-blocked">{{ $susp->duration }}</span>
-                    @else
-                        <span class="badge badge-suspended">{{ $susp->duration }} Hari</span>
-                    @endif
-                </td>
-                <td>{{ $susp->reason }}</td>
-                <td>{{ $susp->internal_notes ?? '-' }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    @endif
 
     <table class="footer-section">
         <tr>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\LostfoundController as AdminLostfoundController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::put('/events/{event_id}', [EventController::class, 'update'])->name('events.update');
         Route::post('/events/{event_id}/respond', [EventController::class, 'respond'])->name('events.respond');
         Route::delete('/events/{event_id}', [EventController::class, 'destroy'])->name('events.destroy');
+
+        // Reports Feature
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+        Route::post('/reports/export', [ReportController::class, 'export'])->name('reports.export');
+        Route::post('/reports/signature', [ReportController::class, 'uploadSignature'])->name('reports.upload-signature');
+        Route::delete('/reports/signature', [ReportController::class, 'deleteSignature'])->name('reports.delete-signature');
     });
 
     // Satpam and Admin can access Lost and Found

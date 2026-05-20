@@ -46,12 +46,18 @@
 
         @if(auth()->user()->role === 'admin')
         <div class="nav-divider"></div>
-
+        
         <a href="{{ route('admin.announcement') }}"
             class="nav-item {{ request()->routeIs('admin.announcement') ? 'active' : '' }}">
             <i data-lucide="megaphone"></i>
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Announcement</span>
+        </a>
+        
+        <a href="{{ route('admin.reports') }}" class="nav-item {{ request()->routeIs('admin.reports') ? 'active' : '' }}">
+            <i data-lucide="file-text"></i>
+            <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Export Laporan</span>
         </a>
         @endif
         <a href="{{ route('profile.edit') }}" class="nav-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
