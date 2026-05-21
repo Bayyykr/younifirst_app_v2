@@ -7,12 +7,19 @@ use App\Models\LostfoundItem;
 use App\Models\LostfoundComment;
 use App\Models\Views\ViewLostfound;
 use App\Models\Views\ViewLostfoundComment;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class LostfoundController extends Controller
 {
+    protected $firebase;
+
+    public function __construct(FirebaseService $firebase)
+    {
+        $this->firebase = $firebase;
+    }
     /**
      * GET /api/lostfound
      */
@@ -54,9 +61,22 @@ class LostfoundController extends Controller
     public function comments(string $lostfound_id, Request $request)
     {
         $perPage  = min((int) $request->input('per_page', 20), 100);
-        $comments = ViewLostfoundComment::where('lostfound_id', $lostfound_id)
+        $comments = ViewLostfoundComment::select('view_lostfound_comments.*', 'u.photo AS commenter_photo_path')
+                        ->leftJoin('users AS u', 'view_lostfound_comments.user_id', '=', 'u.user_id')
+                        ->where('lostfound_id', $lostfound_id)
                         ->orderBy('created_at', 'asc')
                         ->paginate($perPage);
+
+        // Map to include full photo URL and time_ago
+        $comments->getCollection()->transform(function ($comment) {
+            $photoUrl = $comment->commenter_photo_path 
+                ? \Illuminate\Support\Facades\Storage::disk('public')->url($comment->commenter_photo_path)
+                : null;
+                
+            $comment->commenter_photo = $photoUrl;
+            $comment->time_ago = $comment->created_at->diffForHumans();
+            return $comment;
+        });
 
         return response()->json($comments);
     }
@@ -166,6 +186,24 @@ class LostfoundController extends Controller
         $comment->comment      = $validated['comment'];
         $comment->created_at   = \Illuminate\Support\Carbon::now();
         $comment->save();
+
+        // 4. Also push to Firebase Realtime Database for realtime updates
+        try {
+            $database = $this->firebase->getDatabase();
+            if ($database) {
+                $ref = $database->getReference('lostfound_comments/' . $lostfound_id);
+                $ref->push([
+                    'comment_id'      => $comment->comment_id,
+                    'comment'         => $comment->comment,
+                    'created_at'      => $comment->created_at->toISOString(),
+                    'commenter_name'  => $user->name,
+                    'commenter_photo' => $user->photo_url,
+                    'time_ago'        => 'Baru saja'
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Firebase RTDB comment sync failed: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Comment added successfully',

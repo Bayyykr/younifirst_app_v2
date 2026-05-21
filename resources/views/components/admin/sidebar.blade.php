@@ -44,9 +44,8 @@
                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Lost and Found</span>
         </a>
 
-        @if(auth()->user()->role === 'admin')
         <div class="nav-divider"></div>
-        
+        @if(auth()->user()->role === 'admin')
         <a href="{{ route('admin.announcement') }}"
             class="nav-item {{ request()->routeIs('admin.announcement') ? 'active' : '' }}">
             <i data-lucide="megaphone"></i>

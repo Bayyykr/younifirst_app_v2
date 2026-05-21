@@ -11,6 +11,7 @@ class FirebaseService
 {
     protected $auth;
     protected $messaging;
+    protected $database;
     protected string $apiKey;
 
     public function __construct()
@@ -25,6 +26,7 @@ class FirebaseService
 
             $this->auth = $factory->createAuth();
             $this->messaging = $factory->createMessaging();
+            $this->database = $factory->withDatabaseUri(env('FIREBASE_DATABASE_URL', 'https://' . env('FIREBASE_PROJECT_ID') . '-default-rtdb.asia-southeast1.firebasedatabase.app'))->createDatabase();
         } catch (\Throwable $e) {
             Log::error('Firebase Initialization Failed: ' . $e->getMessage());
         }
@@ -140,6 +142,14 @@ class FirebaseService
             Log::error('FCM Notification Failed: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Get Firebase Realtime Database instance
+     */
+    public function getDatabase()
+    {
+        return $this->database;
     }
 }
 

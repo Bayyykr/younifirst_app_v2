@@ -33,33 +33,52 @@ class LostfoundController extends Controller
         ];
 
         // 2. Fetch All Items for Client-side filtering
-        $items = ViewLostfound::orderBy('created_at', 'desc')
+        $items = ViewLostfound::select('view_lostfound.*', 'u.photo AS reporter_photo_path')
+            ->leftJoin('users AS u', 'view_lostfound.reporter_id', '=', 'u.user_id')
+            ->orderBy('view_lostfound.created_at', 'desc')
             ->get()
-            ->map(fn($item) => [
-                'id'            => $item->lostfound_id,
-                'name'          => $item->item_name,
-                'description'   => $item->description,
-                'photo'         => $item->photo_url,
-                'location'      => $item->location,
-                'date'          => $item->created_at->format('d F Y'),
-                'reporter_name' => $item->reporter_name,
-                'reporter_nim'  => $item->reporter_nim ?? 'Mahasiswa',
-                'status'        => $item->status,
-                'status_label'  => match($item->status) {
-                    'lost'    => 'Hilang',
-                    'found'   => 'Ditemukan',
-                    'claimed' => 'Diklaim',
-                    default   => 'Unknown'
-                },
-                'status_class' => match($item->status) {
-                    'lost'    => 'status-danger',
-                    'found'   => 'status-success',
-                    'claimed' => 'status-warning',
-                    default   => 'status-neutral'
-                }
-            ]);
+            ->map(function($item) {
+                $reporterPhoto = $item->reporter_photo_path 
+                    ? \Illuminate\Support\Facades\Storage::disk('public')->url($item->reporter_photo_path)
+                    : null;
 
-        return view('admin.lostfound', compact('stats', 'items'));
+                return [
+                    'id'             => $item->lostfound_id,
+                    'name'           => $item->item_name,
+                    'description'    => $item->description,
+                    'photo'          => $item->photo_url,
+                    'location'       => $item->location,
+                    'date'           => $item->created_at->format('d F Y'),
+                    'time_ago'       => $item->created_at->diffForHumans(),
+                    'reporter_name'  => $item->reporter_name,
+                    'reporter_nim'   => $item->reporter_nim ?? 'Mahasiswa',
+                    'reporter_photo' => $reporterPhoto,
+                    'comments_count' => $item->total_comments ?? 0,
+                    'status'         => $item->status,
+                    'status_label'   => match($item->status) {
+                        'lost'    => 'Hilang',
+                        'found'   => 'Ditemukan',
+                        'claimed' => 'Diklaim',
+                        default   => 'Unknown'
+                    },
+                    'status_class' => match($item->status) {
+                        'lost'    => 'status-danger',
+                        'found'   => 'status-success',
+                        'claimed' => 'status-warning',
+                        default   => 'status-neutral'
+                    }
+                ];
+            });
+
+        $firebaseConfig = [
+            'apiKey'            => env('FIREBASE_API_KEY'),
+            'authDomain'        => env('FIREBASE_PROJECT_ID') . '.firebaseapp.com',
+            'databaseURL'       => env('FIREBASE_DATABASE_URL', 'https://' . env('FIREBASE_PROJECT_ID') . '-default-rtdb.asia-southeast1.firebasedatabase.app'),
+            'projectId'         => env('FIREBASE_PROJECT_ID'),
+            'storageBucket'     => env('FIREBASE_PROJECT_ID') . '.appspot.com',
+        ];
+
+        return view('admin.lostfound', compact('stats', 'items', 'firebaseConfig'));
     }
 
     /**
@@ -97,16 +116,18 @@ class LostfoundController extends Controller
         return response()->json([
             'message' => 'Barang berhasil diposting!',
             'data'    => [
-                'id'            => $savedItem->lostfound_id,
-                'name'          => $savedItem->item_name,
-                'description'   => $savedItem->description,
-                'photo'         => $savedItem->photo_url,
-                'location'      => $savedItem->location,
-                'date'          => $savedItem->created_at->format('d F Y'),
-                'reporter_name' => $savedItem->reporter_name,
-                'reporter_nim'  => $savedItem->reporter_nim ?? 'Mahasiswa',
-                'status'        => $savedItem->status,
-                'status_label'  => match($savedItem->status) {
+                'id'             => $savedItem->lostfound_id,
+                'name'           => $savedItem->item_name,
+                'description'    => $savedItem->description,
+                'photo'          => $savedItem->photo_url,
+                'location'       => $savedItem->location,
+                'date'           => $savedItem->created_at->format('d F Y'),
+                'time_ago'       => $savedItem->created_at->diffForHumans(),
+                'reporter_name'  => $savedItem->reporter_name,
+                'reporter_nim'   => $savedItem->reporter_nim ?? 'Mahasiswa',
+                'comments_count' => 0,
+                'status'         => $savedItem->status,
+                'status_label'   => match($savedItem->status) {
                     'lost'    => 'Hilang',
                     'found'   => 'Ditemukan',
                     'claimed' => 'Diklaim',

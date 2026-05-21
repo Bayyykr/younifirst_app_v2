@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="settings-container" x-data="{ 
-    activeTab: 'profile',
+    activeTab: '{{ $errors->updatePassword->any() || session('status') === 'password-updated' ? 'security' : 'profile' }}',
     notifyEmail: {{ $user->notify_email ? 'true' : 'false' }},
     notifyEvent: {{ $user->notify_event ? 'true' : 'false' }},
     notifyTeam: {{ $user->notify_team ? 'true' : 'false' }},
@@ -63,10 +63,12 @@
                         <i data-lucide="user"></i>
                         <span>Edit Profil</span>
                     </a>
+                    @if(auth()->user()->role === 'admin')
                     <a href="#" @click.prevent="activeTab = 'notifications'" :class="{ 'active': activeTab === 'notifications' }" class="menu-item">
                         <i data-lucide="bell"></i>
                         <span>Pengaturan Notifikasi</span>
                     </a>
+                    @endif
                     <a href="#" @click.prevent="activeTab = 'security'" :class="{ 'active': activeTab === 'security' }" class="menu-item">
                         <i data-lucide="shield"></i>
                         <span>Keamanan Akun</span>
@@ -211,18 +213,30 @@
                         Buat kata sandi baru. Kata sandi baru Anda harus berbeda dari kata sandi yang sebelumnya pernah digunakan.
                     </p>
 
-                    <div class="form-group">
+                    <div class="form-group" x-data="{ show: false }">
                         <label for="password">Kata Sandi Baru</label>
-                        <input type="password" id="password" name="password" class="form-input" placeholder="Masukkan kata sandi baru">
+                        <div style="position: relative;">
+                            <input :type="show ? 'text' : 'password'" id="password" name="password" class="form-input" placeholder="Masukkan kata sandi baru">
+                            <button type="button" @click="show = !show" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                                <i x-show="!show" data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                                <i x-show="show" data-lucide="eye-off" style="width: 18px; height: 18px;" x-cloak></i>
+                            </button>
+                        </div>
                         @error('password', 'updatePassword')
                             <span class="text-danger" style="font-size: 0.75rem;">{{ $message }}</span>
                         @enderror
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" x-data="{ show: false }">
                         <label for="password_confirmation">Konfirmasi Kata Sandi Baru</label>
-                        <input type="password" id="password_confirmation" name="password_confirmation" 
-                               class="form-input" placeholder="Ulangi kata sandi baru">
+                        <div style="position: relative;">
+                            <input :type="show ? 'text' : 'password'" id="password_confirmation" name="password_confirmation" 
+                                   class="form-input" placeholder="Ulangi kata sandi baru">
+                            <button type="button" @click="show = !show" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                                <i x-show="!show" data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                                <i x-show="show" data-lucide="eye-off" style="width: 18px; height: 18px;" x-cloak></i>
+                            </button>
+                        </div>
                         @error('password_confirmation', 'updatePassword')
                             <span class="text-danger" style="font-size: 0.75rem;">{{ $message }}</span>
                         @enderror
