@@ -12,13 +12,6 @@
 
     <form action="{{ route('login') }}" method="POST">
         @csrf
-
-        @if ($errors->any())
-            <div class="error-summary" style="color: #dc2626; background: #fee2e2; padding: 0.75rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.875rem;">
-                {{ $errors->first() }}
-            </div>
-        @endif
-
         <div class="form-group">
             <label for="email">Email SSO Karyawan</label>
             <div class="input-wrapper">
@@ -38,8 +31,8 @@
 
         <div class="form-options">
             <label class="remember-me">
-                <input type="checkbox" name="remember">
-                <span>Ingat Saya</span>
+                <input type="hidden" name="remember" value="0">
+                <input type="checkbox" name="remember" value="1"> Ingat Saya
             </label>
             @if (Route::has('password.request'))
                 <a href="{{ route('password.request') }}" class="forgot-password">Lupa Kata Sandi?</a>
@@ -63,6 +56,37 @@
             this.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-off-icon"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
         } else {
             this.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        }
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Populate fields if stored credentials exist
+        const stored = localStorage.getItem('remember_me');
+        if (stored) {
+            try {
+                const data = JSON.parse(stored);
+                const emailInput = document.getElementById('email');
+                const passwordInput = document.getElementById('password');
+                if (emailInput) emailInput.value = data.email || '';
+                if (passwordInput) passwordInput.value = data.password || '';
+                const rememberChk = document.querySelector('input[name="remember"][type="checkbox"]');
+                if (rememberChk) rememberChk.checked = true;
+            } catch (e) { console.error('Failed to parse stored credentials', e); }
+        }
+
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                const remember = document.querySelector('input[name="remember"][type="checkbox"]').checked;
+                if (remember) {
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    localStorage.setItem('remember_me', JSON.stringify({ email, password }));
+                } else {
+                    localStorage.removeItem('remember_me');
+                }
+            });
         }
     });
 </script>

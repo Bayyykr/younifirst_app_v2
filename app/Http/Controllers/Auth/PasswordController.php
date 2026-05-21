@@ -20,9 +20,15 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user = $request->user();
+        
+        $user->update([
             'password' => Hash::make($validated['password']),
         ]);
+
+        if ($user->firebase_uid) {
+            app(\App\Services\FirebaseService::class)->updateUserPassword($user->firebase_uid, $validated['password']);
+        }
 
         return back()->with('status', 'password-updated');
     }

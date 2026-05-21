@@ -145,6 +145,20 @@ class FirebaseService
     }
 
     /**
+     * Update User Password
+     */
+    public function updateUserPassword(string $uid, string $newPassword)
+    {
+        try {
+            $this->auth->changeUserPassword($uid, $newPassword);
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Firebase Update Password Failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Get Firebase Realtime Database instance
      */
     public function getDatabase()
