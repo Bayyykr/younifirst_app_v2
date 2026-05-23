@@ -55,13 +55,13 @@
                             <label>Kapasitas Tim</label>
                             <div class="info-value">
                                 <i data-lucide="users" style="width: 16px;"></i>
-                                <span x-text="`0 dari ${selectedDetailTeam?.max_member || 2} Anggota`"></span>
+                                <span x-text="`${getTeamMemberCount(selectedDetailTeam)} dari ${getTeamMaxMembers(selectedDetailTeam)} Anggota`"></span>
                             </div>
                         </div>
                         <div class="info-item">
                             <label>Status Saat Ini</label>
                             <div class="info-value">
-                                <span class="badge-status-pending">Menunggu Persetujuan Admin</span>
+                                <span :class="getTeamStatusBadgeClass(selectedDetailTeam)" x-text="getTeamStatusLabel(selectedDetailTeam)"></span>
                             </div>
                         </div>
                     </div>
@@ -263,7 +263,7 @@
                                                 alt="User">
                                         </div>
                                         <div class="count-label">
-                                            <span class="text-blue" x-text="`0/${pTeam.max_member || 2}`"></span>
+                                            <span class="text-blue" x-text="`${getTeamMemberCount(pTeam)}/${getTeamMaxMembers(pTeam)}`"></span>
                                             <span>Anggota</span>
                                         </div>
                                     </div>
@@ -459,7 +459,7 @@
                                         alt="User">
                                 </div>
                                 <div class="count-label">
-                                    <span class="text-blue" x-text="`0/${pTeam.max_member || 2}`"></span>
+                                    <span class="text-blue" x-text="`${getTeamMemberCount(pTeam)}/${getTeamMaxMembers(pTeam)}`"></span>
                                     <span>Anggota</span>
                                 </div>
                             </div>
@@ -1824,6 +1824,216 @@
         .btn-primary-outline:hover {
             background: #EFF6FF;
         }
+
+        .badge-rejected {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        /* Dark Mode Fixes: Detail/Edit-like modals and pagination */
+        html.dark .team-monitoring .modal-overlay {
+            background: rgba(2, 6, 23, 0.76) !important;
+        }
+
+        html.dark .team-monitoring .modal-container {
+            background: #1E293B !important;
+            border: 1px solid #334155 !important;
+            color: #F8FAFC !important;
+        }
+
+        html.dark .team-monitoring .modal-header-premium,
+        html.dark .team-monitoring .modal-footer-premium {
+            border-color: #334155 !important;
+        }
+
+        html.dark .team-monitoring .modal-header-premium .header-icon {
+            background: rgba(59, 130, 246, 0.16) !important;
+            color: #60A5FA !important;
+        }
+
+        html.dark .team-monitoring .header-title-wrapper h3,
+        html.dark .team-monitoring .respond-modal h3,
+        html.dark .team-monitoring .achievement-display,
+        html.dark .team-monitoring .leader-text .name {
+            color: #F8FAFC !important;
+        }
+
+        html.dark .team-monitoring .competition-badge {
+            background: #0F172A !important;
+            border-color: #334155 !important;
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .team-monitoring .close-btn {
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .team-monitoring .close-btn:hover {
+            color: #FFFFFF !important;
+        }
+
+        html.dark .team-monitoring .info-item label,
+        html.dark .team-monitoring .report-info-item label,
+        html.dark .team-monitoring .report-photo-card label,
+        html.dark .team-monitoring .team-bio label {
+            color: #94A3B8 !important;
+        }
+
+        html.dark .team-monitoring .info-value,
+        html.dark .team-monitoring .leader-text .label,
+        html.dark .team-monitoring .respond-modal p {
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .team-monitoring .team-bio,
+        html.dark .team-monitoring .report-photo-card,
+        html.dark .team-monitoring .no-photo {
+            background: #0F172A !important;
+            border-color: #334155 !important;
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .team-monitoring .team-bio p {
+            color: #E2E8F0 !important;
+        }
+
+        html.dark .team-monitoring .badge-status-pending {
+            background: rgba(249, 115, 22, 0.14) !important;
+            border-color: rgba(249, 115, 22, 0.32) !important;
+            color: #FDBA74 !important;
+        }
+
+        html.dark .team-monitoring .badge-open {
+            background: rgba(16, 185, 129, 0.16) !important;
+            color: #86EFAC !important;
+        }
+
+        html.dark .team-monitoring .badge-full,
+        html.dark .team-monitoring .badge-rejected {
+            background: rgba(239, 68, 68, 0.16) !important;
+            color: #FCA5A5 !important;
+        }
+
+        html.dark .team-monitoring .btn-secondary,
+        html.dark .team-monitoring .btn-primary-outline {
+            background: #111827 !important;
+            border: 1px solid #334155 !important;
+            color: #F8FAFC !important;
+        }
+
+        html.dark .team-monitoring .btn-secondary:hover,
+        html.dark .team-monitoring .btn-primary-outline:hover {
+            background: #0F172A !important;
+            border-color: #475569 !important;
+        }
+
+        html.dark .team-monitoring .bg-green-light {
+            background: rgba(16, 185, 129, 0.16) !important;
+            color: #34D399 !important;
+        }
+
+        html.dark .team-monitoring .bg-red-light {
+            background: rgba(239, 68, 68, 0.16) !important;
+            color: #F87171 !important;
+        }
+
+        html.dark .team-monitoring .pagination-footer {
+            border-top-color: #334155 !important;
+        }
+
+        html.dark .team-monitoring .pagination-info {
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .team-monitoring .page-nav-btn,
+        html.dark .team-monitoring .page-num-btn {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #F8FAFC !important;
+        }
+
+        html.dark .team-monitoring .page-nav-btn:hover:not(:disabled),
+        html.dark .team-monitoring .page-num-btn:hover:not(.active) {
+            background: #1E293B !important;
+            border-color: #475569 !important;
+        }
+
+        html.dark .team-monitoring .page-num-btn.active {
+            background: #3B82F6 !important;
+            border-color: #3B82F6 !important;
+            color: #FFFFFF !important;
+        }
+
+        html.dark .team-monitoring .page-nav-btn:disabled {
+            opacity: 0.45;
+        }
+
+        html.dark .team-monitoring .pending-actions .btn-action-outline,
+        html.dark .team-monitoring .pending-card-right .btn-action-outline {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .team-monitoring .pending-actions .btn-action-outline:hover,
+        html.dark .team-monitoring .pending-card-right .btn-action-outline:hover {
+            background: rgba(59, 130, 246, 0.14) !important;
+            border-color: #3B82F6 !important;
+            color: #93C5FD !important;
+        }
+
+        html.dark .team-monitoring .pending-actions .btn-action-success,
+        html.dark .team-monitoring .pending-card-right .btn-action-success {
+            background: #111827 !important;
+            border-color: rgba(16, 185, 129, 0.55) !important;
+            color: #34D399 !important;
+        }
+
+        html.dark .team-monitoring .pending-actions .btn-action-success:hover,
+        html.dark .team-monitoring .pending-card-right .btn-action-success:hover {
+            background: rgba(16, 185, 129, 0.14) !important;
+            border-color: #10B981 !important;
+            color: #6EE7B7 !important;
+        }
+
+        html.dark .team-monitoring .pending-actions .btn-action-danger,
+        html.dark .team-monitoring .pending-card-right .btn-action-danger {
+            background: #111827 !important;
+            border-color: rgba(239, 68, 68, 0.55) !important;
+            color: #F87171 !important;
+        }
+
+        html.dark .team-monitoring .pending-actions .btn-action-danger:hover,
+        html.dark .team-monitoring .pending-card-right .btn-action-danger:hover {
+            background: rgba(239, 68, 68, 0.14) !important;
+            border-color: #EF4444 !important;
+            color: #FCA5A5 !important;
+        }
+
+        html.dark .team-monitoring .view-all {
+            color: #93C5FD !important;
+            border-radius: 8px;
+            padding: 6px 10px;
+            transition: all 0.2s;
+        }
+
+        html.dark .team-monitoring .view-all:hover {
+            background: rgba(59, 130, 246, 0.14) !important;
+            color: #BFDBFE !important;
+            text-decoration: none !important;
+        }
+
+        html.dark .team-monitoring .back-btn {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .team-monitoring .back-btn:hover {
+            background: rgba(59, 130, 246, 0.14) !important;
+            border-color: #3B82F6 !important;
+            color: #93C5FD !important;
+        }
     </style>
 @endpush
 
@@ -1918,6 +2128,48 @@
                     this.showRespondModal = true;
                 },
 
+                getTeamActiveCount(team) {
+                    return Number(team?.active_count ?? team?.current_member_count ?? 0);
+                },
+
+                getTeamPendingCount(team) {
+                    return Number(team?.pending_count ?? team?.pending_member_count ?? 0);
+                },
+
+                getTeamMaxMembers(team) {
+                    return Number(team?.max_member ?? 0);
+                },
+
+                getTeamMemberCount(team) {
+                    if (!team) return 0;
+                    const rawStatus = String(team.status || '').toLowerCase();
+                    const activeCount = this.getTeamActiveCount(team);
+                    const pendingCount = this.getTeamPendingCount(team);
+
+                    return rawStatus === 'pending' ? activeCount + pendingCount : activeCount;
+                },
+
+                getTeamStatusLabel(team) {
+                    if (!team) return '-';
+
+                    const rawStatus = String(team.status || '').toLowerCase();
+                    if (rawStatus === 'pending') return 'Menunggu Persetujuan Admin';
+                    if (rawStatus === 'rejected') return 'Ditolak';
+                    if (rawStatus === 'approved') {
+                        return this.getTeamMemberCount(team) >= this.getTeamMaxMembers(team) ? 'Full' : 'Open';
+                    }
+
+                    return team.status || '-';
+                },
+
+                getTeamStatusBadgeClass(team) {
+                    const label = this.getTeamStatusLabel(team).toLowerCase();
+                    if (label === 'open') return 'badge-status badge-open';
+                    if (label === 'full') return 'badge-status badge-full';
+                    if (label === 'ditolak') return 'badge-status badge-rejected';
+                    return 'badge-status-pending';
+                },
+
                 openDetailModal(team) {
                     // Normalize data for both pending and approved formats
                     this.selectedDetailTeam = {
@@ -1926,7 +2178,10 @@
                         leader_name: team.leader_name,
                         created_at: team.created_at,
                         description: team.description,
-                        max_member: team.max_member
+                        max_member: team.max_member,
+                        active_count: team.active_count ?? team.current_member_count ?? 0,
+                        pending_count: team.pending_count ?? team.pending_member_count ?? 0,
+                        status: team.status || 'pending'
                     };
                     this.showDetailModal = true;
                 },

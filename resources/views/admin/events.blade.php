@@ -24,7 +24,7 @@
                 <div class="stat-card">
                     <span class="stat-label">Upload Request</span>
                     <div class="stat-value text-orange">{{ $stats['pending'] }}</div>
-                    <span class="stat-sublabel text-orange">User awaiting approval;</span>
+                    <span class="stat-sublabel text-orange">User awaiting approval</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Rejected</span>
@@ -100,15 +100,38 @@
                         <i data-lucide="search" style="width: 18px;"></i>
                         <input type="text" x-model.debounce.300ms="search" placeholder="Cari event...">
                     </div>
-                    <div class="filter-dropdown">
-                        <select x-model="statusFilter" class="custom-select">
-                            <option value="all">Semua Status</option>
-                            <option value="upcoming">Upcoming</option>
-                            <option value="ongoing">Ongoing</option>
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
+                    <div class="dropdown-wrapper" x-data="{ open: false }">
+                        <button type="button" class="dropdown-btn" @click="open = !open">
+                            <span x-text="getStatusFilterLabel(statusFilter)">Semua Status</span>
+                            <i data-lucide="chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" x-show="open" @click.outside="open = false" x-cloak>
+                            <div class="dropdown-item" @click="statusFilter = 'all'; open = false">
+                                Semua Status
+                                <i data-lucide="check" x-show="statusFilter === 'all'"></i>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item" @click="statusFilter = 'upcoming'; open = false">
+                                Upcoming
+                                <i data-lucide="check" x-show="statusFilter === 'upcoming'"></i>
+                            </div>
+                            <div class="dropdown-item" @click="statusFilter = 'ongoing'; open = false">
+                                Ongoing
+                                <i data-lucide="check" x-show="statusFilter === 'ongoing'"></i>
+                            </div>
+                            <div class="dropdown-item" @click="statusFilter = 'pending'; open = false">
+                                Pending
+                                <i data-lucide="check" x-show="statusFilter === 'pending'"></i>
+                            </div>
+                            <div class="dropdown-item" @click="statusFilter = 'completed'; open = false">
+                                Completed
+                                <i data-lucide="check" x-show="statusFilter === 'completed'"></i>
+                            </div>
+                            <div class="dropdown-item" @click="statusFilter = 'rejected'; open = false">
+                                Rejected
+                                <i data-lucide="check" x-show="statusFilter === 'rejected'"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <button class="btn btn-primary-blue" @click="openAddModal()">
@@ -1121,6 +1144,405 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+
+        /* Match User Management filter style */
+        .event-management .main-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            gap: 32px;
+            width: 100%;
+            flex-wrap: nowrap;
+        }
+
+        .event-management .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .event-management .search-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: 600px;
+            display: block;
+        }
+
+        .event-management .search-wrapper i,
+        .event-management .search-wrapper svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: #94A3B8;
+            pointer-events: none;
+        }
+
+        .event-management .search-wrapper input {
+            width: 100%;
+            height: 46px;
+            padding: 0 16px 0 42px;
+            border: 1px solid var(--border-color);
+            border-radius: 99px;
+            font-size: 14px;
+            background: var(--bg-white);
+            color: var(--text-main);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .event-management .search-wrapper input:focus {
+            background: var(--bg-white);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .event-management .dropdown-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .event-management .dropdown-btn {
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            padding: 0 20px;
+            border-radius: 99px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1E293B;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 160px;
+            height: 46px;
+        }
+
+        .event-management .dropdown-btn:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+        }
+
+        .event-management .dropdown-btn i,
+        .event-management .dropdown-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .event-management .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            min-width: 200px;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 80;
+            padding: 6px;
+            animation: eventDropdownIn 0.2s ease-out;
+        }
+
+        @keyframes eventDropdownIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .event-management .dropdown-item {
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .event-management .dropdown-item:hover {
+            background: #F1F5F9;
+            color: var(--primary);
+        }
+
+        .event-management .dropdown-item i,
+        .event-management .dropdown-item svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .event-management .dropdown-divider {
+            height: 1px;
+            background: #F1F5F9;
+            margin: 4px 6px;
+        }
+
+        .event-management .main-toolbar .btn-primary-blue {
+            height: 46px;
+            padding: 0 24px;
+            border-radius: 99px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 640px) {
+            .event-management .main-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+
+            .event-management .toolbar-left {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .event-management .search-wrapper {
+                max-width: none;
+                width: 100%;
+            }
+
+            .event-management .dropdown-wrapper,
+            .event-management .dropdown-btn,
+            .event-management .main-toolbar .btn-primary-blue {
+                width: 100%;
+            }
+
+            .event-management .dropdown-menu {
+                width: 100%;
+            }
+        }
+
+        /* Dark mode fixes for Event Management filters and modals */
+        html.dark .event-management .search-wrapper input {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #F8FAFC !important;
+            caret-color: #F8FAFC !important;
+        }
+
+        html.dark .event-management .search-wrapper input::placeholder {
+            color: #94A3B8 !important;
+        }
+
+        html.dark .event-management .search-wrapper i,
+        html.dark .event-management .search-wrapper svg {
+            color: #94A3B8 !important;
+        }
+
+        html.dark .event-management .search-wrapper input:focus {
+            background: #111827 !important;
+            border-color: #3B82F6 !important;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18) !important;
+            outline: none !important;
+        }
+
+        html.dark .event-management .dropdown-btn {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #F8FAFC !important;
+        }
+
+        html.dark .event-management .dropdown-btn i,
+        html.dark .event-management .dropdown-btn svg {
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .event-management .dropdown-btn:hover,
+        html.dark .event-management .dropdown-wrapper:focus-within .dropdown-btn {
+            background: #1E293B !important;
+            border-color: #3B82F6 !important;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14) !important;
+        }
+
+        html.dark .event-management .dropdown-menu {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            box-shadow: 0 18px 35px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        html.dark .event-management .dropdown-item {
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .event-management .dropdown-item:hover {
+            background: #1E293B !important;
+            color: #93C5FD !important;
+        }
+
+        html.dark .event-management .dropdown-item i,
+        html.dark .event-management .dropdown-item svg {
+            color: #3B82F6 !important;
+        }
+
+        html.dark .event-management .dropdown-divider {
+            background: #334155 !important;
+        }
+
+        html.dark .event-management .pill-btn {
+            background: #1E293B;
+            border-color: #334155;
+            color: #CBD5E1;
+        }
+
+        html.dark .event-management .pill-btn:hover {
+            background: #263449;
+            border-color: #3B82F6;
+            color: #93C5FD;
+        }
+
+        html.dark .event-management .pill-btn.active {
+            background: #3B82F6;
+            border-color: #3B82F6;
+            color: #FFFFFF;
+        }
+
+        html.dark .event-management .modal-overlay {
+            background: rgba(2, 6, 23, 0.76) !important;
+        }
+
+        html.dark .event-management .modal-container {
+            background: #1E293B !important;
+            border: 1px solid #334155 !important;
+            color: #F8FAFC !important;
+        }
+
+        html.dark .event-management .modal-header {
+            background: #1E293B !important;
+            border-bottom-color: #334155 !important;
+        }
+
+        html.dark .event-management .modal-header h2,
+        html.dark .event-management .modal-header h3,
+        html.dark .event-management .delete-confirm-modal h3,
+        html.dark .event-management .respond-confirm-modal h3 {
+            color: #F8FAFC !important;
+        }
+
+        html.dark .event-management .modal-close-btn {
+            background: #E2E8F0 !important;
+            color: #475569 !important;
+        }
+
+        html.dark .event-management .modal-close-btn:hover {
+            background: #FEE2E2 !important;
+            color: #B91C1C !important;
+        }
+
+        html.dark .event-management .modal-form-content,
+        html.dark .event-management .modal-left,
+        html.dark .event-management .modal-right {
+            background: #1E293B !important;
+            border-color: #334155 !important;
+        }
+
+        html.dark .event-management .modal-left {
+            border-right-color: #334155 !important;
+        }
+
+        html.dark .event-management .modal-footer-actions {
+            background: #0F172A !important;
+            border-top-color: #334155 !important;
+        }
+
+        html.dark .event-management .form-group label,
+        html.dark .event-management .form-group label i,
+        html.dark .event-management .input-with-icon i {
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .event-management .form-group label span {
+            color: #F87171 !important;
+        }
+
+        html.dark .event-management .form-group input,
+        html.dark .event-management .form-group textarea,
+        html.dark .event-management .form-group select {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #F8FAFC !important;
+            caret-color: #F8FAFC !important;
+            color-scheme: dark;
+        }
+
+        html.dark .event-management .form-group input::placeholder,
+        html.dark .event-management .form-group textarea::placeholder {
+            color: #94A3B8 !important;
+        }
+
+        html.dark .event-management .form-group input:focus,
+        html.dark .event-management .form-group textarea:focus,
+        html.dark .event-management .form-group select:focus {
+            border-color: #3B82F6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+            outline: none !important;
+        }
+
+        html.dark .event-management .form-group input[readonly],
+        html.dark .event-management .form-group textarea[readonly] {
+            background: #0F172A !important;
+            color: #E2E8F0 !important;
+            opacity: 1 !important;
+        }
+
+        html.dark .event-management .poster-preview-area,
+        html.dark .event-management .poster-placeholder-text {
+            background: #0F172A !important;
+            border-color: #334155 !important;
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .event-management .poster-placeholder-text p,
+        html.dark .event-management .poster-placeholder-text span {
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .event-management .category-chip .chip-content {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #CBD5E1 !important;
+        }
+
+        html.dark .event-management .category-chip input:checked + .chip-content {
+            background: rgba(59, 130, 246, 0.18) !important;
+            border-color: #3B82F6 !important;
+            color: #93C5FD !important;
+        }
+
+        html.dark .event-management .btn-cancel,
+        html.dark .event-management .btn-secondary-gray {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #F8FAFC !important;
+        }
+
+        html.dark .event-management .btn-cancel:hover,
+        html.dark .event-management .btn-secondary-gray:hover {
+            background: #1E293B !important;
+            border-color: #475569 !important;
+        }
+
+        html.dark .event-management .delete-confirm-modal p,
+        html.dark .event-management .respond-confirm-modal p {
+            color: #CBD5E1 !important;
+        }
     </style>
 @endpush
 
@@ -1372,6 +1794,18 @@
                     if (status === 'pending') return 'Pending';
                     if (status === 'rejected') return 'Rejected';
                     return status.charAt(0).toUpperCase() + status.slice(1);
+                },
+
+                getStatusFilterLabel(status) {
+                    const labels = {
+                        all: 'Semua Status',
+                        upcoming: 'Upcoming',
+                        ongoing: 'Ongoing',
+                        pending: 'Pending',
+                        completed: 'Completed',
+                        rejected: 'Rejected'
+                    };
+                    return labels[status] || this.capitalize(status);
                 },
 
                 capitalize(str) {
