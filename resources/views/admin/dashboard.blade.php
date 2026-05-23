@@ -429,9 +429,9 @@
     .dot { font-size: 8px; }
 
     /* Dark Mode Adjustments */
-    .dark .stat-card, 
-    .dark .chart-container, 
-    .dark .activity-container, 
+    .dark .stat-card,
+    .dark .chart-container,
+    .dark .activity-container,
     .dark .announcements-card {
         background: var(--bg-white);
         border-color: var(--border-color);
@@ -448,6 +448,17 @@
     }
 
     .dark .alert-content { color: #FDBA74; }
+
+    .dark .apexcharts-text,
+    .dark .apexcharts-legend-text,
+    .dark .apexcharts-datalabel-label,
+    .dark .apexcharts-datalabel-value,
+    .dark .apexcharts-datalabels text,
+    .dark .apexcharts-xaxis-label,
+    .dark .apexcharts-yaxis-label {
+        fill: #FFFFFF !important;
+        color: #FFFFFF !important;
+    }
 
     @media (max-width: 1200px) {
         .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -467,6 +478,55 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        var charts = [];
+        var isDarkMode = function() {
+            return document.documentElement.classList.contains('dark');
+        };
+        var getChartThemeOptions = function() {
+            var textColor = isDarkMode() ? '#FFFFFF' : '#64748B';
+            var tooltipTheme = isDarkMode() ? 'dark' : 'light';
+
+            return {
+                chart: {
+                    foreColor: textColor
+                },
+                legend: {
+                    labels: {
+                        colors: textColor
+                    }
+                },
+                xaxis: {
+                    labels: {
+                        style: {
+                            colors: textColor
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: textColor
+                        }
+                    }
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            labels: {
+                                value: { color: textColor },
+                                name: { color: textColor },
+                                total: { color: textColor }
+                            }
+                        }
+                    }
+                },
+                tooltip: {
+                    theme: tooltipTheme
+                }
+            };
+        };
+        var chartThemeOptions = getChartThemeOptions();
+
         // Growth Chart
         var growthOptions = {
             series: [{
@@ -482,7 +542,8 @@
             chart: {
                 type: 'bar',
                 height: 350,
-                toolbar: { show: false }
+                toolbar: { show: false },
+                foreColor: chartThemeOptions.chart.foreColor
             },
             plotOptions: {
                 bar: {
@@ -501,37 +562,43 @@
             xaxis: {
                 categories: @json($months),
                 axisBorder: { show: false },
-                axisTicks: { show: false }
+                axisTicks: { show: false },
+                labels: chartThemeOptions.xaxis.labels
             },
             yaxis: {
                 title: { text: '' },
                 labels: {
+                    style: chartThemeOptions.yaxis.labels.style,
                     formatter: function (val) { return val.toFixed(0) }
                 }
             },
             fill: { opacity: 1 },
             tooltip: {
+                theme: chartThemeOptions.tooltip.theme,
                 y: {
                     formatter: function (val) { return val }
                 }
             },
             colors: ['#3B82F6', '#10B981', '#F59E0B'],
-            legend: { position: 'top', horizontalAlign: 'left' }
+            legend: { position: 'top', horizontalAlign: 'left', labels: chartThemeOptions.legend.labels }
         };
 
         var growthChart = new ApexCharts(document.querySelector("#growthChart"), growthOptions);
         growthChart.render();
+        charts.push(growthChart);
 
         // Category Chart
         var categoryOptions = {
             series: @json($categories->pluck('events_count')),
             chart: {
                 type: 'donut',
-                height: 300
+                height: 300,
+                foreColor: chartThemeOptions.chart.foreColor
             },
             labels: @json($categories->pluck('name_category')),
             colors: ['#1D4ED8', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'],
-            legend: { position: 'bottom' },
+            legend: { position: 'bottom', labels: chartThemeOptions.legend.labels },
+            tooltip: { theme: chartThemeOptions.tooltip.theme },
             dataLabels: { enabled: false },
             plotOptions: {
                 pie: {
@@ -539,9 +606,12 @@
                         size: '70%',
                         labels: {
                             show: true,
+                            name: { color: chartThemeOptions.chart.foreColor },
+                            value: { color: chartThemeOptions.chart.foreColor },
                             total: {
                                 show: true,
                                 label: 'Total',
+                                color: chartThemeOptions.chart.foreColor,
                                 formatter: function (w) {
                                     return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
                                 }
@@ -554,17 +624,20 @@
 
         var categoryChart = new ApexCharts(document.querySelector("#categoryChart"), categoryOptions);
         categoryChart.render();
+        charts.push(categoryChart);
 
         // Team Status Chart
         var teamStatusOptions = {
             series: [@json($teamStatus['open']), @json($teamStatus['full'])],
             chart: {
                 type: 'donut',
-                height: 250
+                height: 250,
+                foreColor: chartThemeOptions.chart.foreColor
             },
             labels: ['Open', 'Full'],
             colors: ['#10B981', '#EF4444'],
-            legend: { position: 'bottom' },
+            legend: { position: 'bottom', labels: chartThemeOptions.legend.labels },
+            tooltip: { theme: chartThemeOptions.tooltip.theme },
             dataLabels: { enabled: false },
             plotOptions: {
                 pie: {
@@ -575,17 +648,20 @@
 
         var teamStatusChart = new ApexCharts(document.querySelector("#teamStatusChart"), teamStatusOptions);
         teamStatusChart.render();
+        charts.push(teamStatusChart);
 
         // L&F Status Chart
         var lfStatusOptions = {
             series: [@json($lfStatus['lost']), @json($lfStatus['found']), @json($lfStatus['resolved'])],
             chart: {
                 type: 'donut',
-                height: 250
+                height: 250,
+                foreColor: chartThemeOptions.chart.foreColor
             },
             labels: ['Hilang', 'Ditemukan', 'Selesai'],
             colors: ['#EF4444', '#F59E0B', '#1D4ED8'],
-            legend: { position: 'bottom' },
+            legend: { position: 'bottom', labels: chartThemeOptions.legend.labels },
+            tooltip: { theme: chartThemeOptions.tooltip.theme },
             dataLabels: { enabled: false },
             plotOptions: {
                 pie: {
@@ -596,6 +672,23 @@
 
         var lfStatusChart = new ApexCharts(document.querySelector("#lostFoundStatusChart"), lfStatusOptions);
         lfStatusChart.render();
+        charts.push(lfStatusChart);
+
+        var currentDarkMode = isDarkMode();
+        var updateChartsTheme = function() {
+            if (currentDarkMode === isDarkMode()) return;
+
+            currentDarkMode = isDarkMode();
+            var options = getChartThemeOptions();
+            charts.forEach(function(chart) {
+                chart.updateOptions(options, false, true);
+            });
+        };
+
+        new MutationObserver(updateChartsTheme).observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
 
         // Re-create icons for dynamic elements
         if (window.lucide) {
