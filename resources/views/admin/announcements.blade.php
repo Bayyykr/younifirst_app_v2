@@ -137,60 +137,43 @@
 
         <!-- Modal Form (Add/Edit) -->
         <div x-show="showFormModal" class="modal-overlay" style="display: none;" x-transition>
-            <div class="modal-container" @click.away="showFormModal = false" style="max-width: 600px;">
-                <div class="modal-header"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-white);">
-                    <h3 style="font-weight: 700; color: var(--text-main);"
-                        x-text="isEdit ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'"></h3>
-                    <button @click="showFormModal = false"
-                        style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
+            <div class="modal-container announcement-form-modal" @click.away="showFormModal = false">
+                <div class="modal-header announcement-modal-header">
+                    <h3 x-text="isEdit ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'"></h3>
+                    <button type="button" @click="showFormModal = false" class="modal-close-btn" aria-label="Tutup modal">
+                        <i data-lucide="x"></i>
                     </button>
                 </div>
 
                 <form :action="isEdit ? `/admin/announcement/${selectedId}` : '{{ route('admin.announcement.store') }}'"
-                    method="POST" enctype="multipart/form-data" style="padding: 20px;">
+                    method="POST" enctype="multipart/form-data" class="announcement-form">
                     @csrf
                     <template x-if="isEdit">
                         <input type="hidden" name="_method" value="PUT">
                     </template>
 
-                    <div style="margin-bottom: 20px;">
-                        <label
-                            style="display: block; font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 8px;">Judul
-                            Pengumuman</label>
+                    <div class="announcement-form-group">
+                        <label>Judul Pengumuman</label>
                         <input type="text" name="title" x-model="formData.title" required
-                            placeholder="Contoh: Maintenance Sistem"
-                            style="width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px;">
+                            placeholder="Contoh: Maintenance Sistem">
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <label
-                            style="display: block; font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 8px;">Isi
-                            Konten</label>
+                    <div class="announcement-form-group">
+                        <label>Isi Konten</label>
                         <textarea name="content" x-model="formData.content" required rows="5"
-                            placeholder="Tuliskan detail pengumuman di sini..."
-                            style="width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                            placeholder="Tuliskan detail pengumuman di sini..."></textarea>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <label
-                            style="display: block; font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">Status</label>
-                        <select name="status" x-model="formData.status" required
-                            style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background-color: var(--bg-white); color: var(--text-main);">
+                    <div class="announcement-form-group">
+                        <label>Status</label>
+                        <select name="status" x-model="formData.status" required>
                             <option value="publish">Publish</option>
                             <option value="draft">Draft</option>
                         </select>
                     </div>
 
-                    <div style="margin-bottom: 24px;">
-                        <label
-                            style="display: block; font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 8px;">File
-                            Lampiran (Opsional)</label>
+                    <div class="announcement-form-group file-group">
+                        <label>File Lampiran (Opsional)</label>
 
                         <div class="file-upload-wrapper">
                             <input type="file" name="file" x-ref="fileInput" @change="handleFileSelect($event)"
@@ -208,25 +191,18 @@
                             </div>
 
                             <template x-if="isEdit && formData.file_url && !selectedFileName">
-                                <div
-                                    style="margin-top: 10px; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #EFF6FF; border-radius: 8px;">
-                                    <i data-lucide="file-check" style="width: 14px; color: #3B82F6;"></i>
-                                    <span style="font-size: 12px; color: #3B82F6;">File saat ini tersimpan: </span>
-                                    <a :href="formData.file_url" target="_blank"
-                                        style="font-size: 12px; color: #1D4ED8; font-weight: 600; text-decoration: underline;">Lihat
-                                        File</a>
+                                <div class="current-file-info">
+                                    <i data-lucide="file-check"></i>
+                                    <span>File saat ini tersimpan: </span>
+                                    <a :href="formData.file_url" target="_blank">Lihat File</a>
                                 </div>
                             </template>
                         </div>
                     </div>
 
-                    <div
-                        style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                        <button type="button" @click="showFormModal = false"
-                            style="padding: 10px 20px; background: var(--bg-main); color: var(--text-muted); border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Batal</button>
-                        <button type="submit"
-                            style="padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;"
-                            x-text="isEdit ? 'Perbarui' : 'Simpan'"></button>
+                    <div class="announcement-form-actions">
+                        <button type="button" @click="showFormModal = false" class="btn-modal-secondary">Batal</button>
+                        <button type="submit" class="btn-modal-primary" x-text="isEdit ? 'Perbarui' : 'Simpan'"></button>
                     </div>
                 </form>
             </div>
@@ -386,6 +362,171 @@
             max-height: 90vh;
             overflow-y: auto;
             border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .announcement-form-modal {
+            max-width: 600px;
+            overflow: hidden;
+        }
+
+        .announcement-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-white);
+        }
+
+        .announcement-modal-header h3 {
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .modal-close-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: var(--bg-main);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--bg-hover);
+            color: var(--danger);
+        }
+
+        .modal-close-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .announcement-form {
+            padding: 20px;
+            background: var(--bg-white);
+        }
+
+        .announcement-form-group {
+            margin-bottom: 20px;
+        }
+
+        .announcement-form-group.file-group {
+            margin-bottom: 24px;
+        }
+
+        .announcement-form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .announcement-form-group input,
+        .announcement-form-group textarea,
+        .announcement-form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-white);
+            color: var(--text-main);
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        .announcement-form-group textarea {
+            resize: vertical;
+        }
+
+        .announcement-form-group input::placeholder,
+        .announcement-form-group textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.75;
+        }
+
+        .announcement-form-group input:focus,
+        .announcement-form-group textarea:focus,
+        .announcement-form-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            outline: none;
+        }
+
+        .current-file-info {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--primary-light, rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            color: var(--primary);
+        }
+
+        .current-file-info svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .current-file-info span,
+        .current-file-info a {
+            font-size: 12px;
+            color: var(--primary);
+        }
+
+        .current-file-info a {
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .announcement-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-modal-secondary,
+        .btn-modal-primary {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-modal-secondary {
+            background: var(--bg-main);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-modal-secondary:hover {
+            background: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .btn-modal-primary {
+            background: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+
+        .btn-modal-primary:hover {
+            background: #2563EB;
+            transform: translateY(-1px);
         }
 
         /* Toast Notifications */
@@ -695,7 +836,7 @@
         }
 
         .file-upload-box:hover {
-            background: #F1F5F9;
+            background: var(--bg-hover);
             border-color: #3B82F6;
         }
 
@@ -724,7 +865,7 @@
 
         .file-upload-text .sub-text {
             font-size: 12px;
-            color: #64748B;
+            color: var(--text-muted);
             margin: 0;
         }
 

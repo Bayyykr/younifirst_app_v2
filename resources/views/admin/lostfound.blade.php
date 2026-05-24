@@ -210,8 +210,8 @@
     </div>
 
     <!-- Table Section -->
-    <div class="card table-card">
-        <table class="data-table">
+    <div class="table-container">
+        <table class="premium-table lf-table">
             <thead>
                 <tr>
                     <th>Barang</th>
@@ -259,7 +259,7 @@
                                   x-text="item.status_label"></span>
                         </td>
                         <td>
-                            <div class="action-buttons">
+                            <div class="cell-actions">
                                 <button title="View" class="action-btn"
                                         @click="openDetailModal(item)">
                                     <i data-lucide="eye" style="width:18px;height:18px;"></i>
@@ -291,25 +291,25 @@
         </table>
 
         <!-- Pagination Controls -->
-        <div class="pagination-container" x-show="totalPages > 1" x-cloak>
+        <div class="pagination-footer" x-show="totalPages > 1" x-cloak>
             <div class="pagination-info">
                 Menampilkan <span x-text="startIndex + 1"></span> -
                 <span x-text="Math.min(endIndex, totalItemsCount)"></span>
                 dari <span x-text="totalItemsCount"></span> data
             </div>
-            <div class="pagination-buttons">
-                <button class="pagination-btn" @click="prevPage"
+            <div class="pagination-btns">
+                <button class="page-nav-btn" @click="prevPage"
                         :disabled="currentPage === 1">
                     <i data-lucide="chevron-left" class="icon-xs"></i> Prev
                 </button>
                 <div class="page-numbers">
                     <template x-for="p in totalPages" :key="p">
-                        <button class="pagination-btn"
+                        <button class="page-num-btn"
                                 :class="{ 'active': currentPage === p }"
                                 @click="goToPage(p)" x-text="p"></button>
                     </template>
                 </div>
-                <button class="pagination-btn" @click="nextPage"
+                <button class="page-nav-btn" @click="nextPage"
                         :disabled="currentPage === totalPages">
                     Next <i data-lucide="chevron-right" class="icon-xs"></i>
                 </button>
@@ -335,32 +335,24 @@
             </div>
             <form @submit.prevent="addItem()">
                 <div class="modal-body">
-                    <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:30px;">
+                    <div class="lf-add-grid">
                         <!-- Left: image upload -->
                         <div>
-                            <label style="font-size:14px;font-weight:600;color:#475569;display:block;margin-bottom:8px;">
+                            <label class="lf-upload-label">
                                 Foto Barang
                             </label>
-                            <div @click="$refs.fileInput.click()"
-                                 style="width:100%;aspect-ratio:1/1;background:#F8FAFC;border:2px dashed #E2E8F0;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;margin-bottom:16px;position:relative;cursor:pointer;transition:all 0.2s;"
-                                 onmouseover="this.style.borderColor='#4F46E5';this.style.background='#F1F5F9'"
-                                 onmouseout="this.style.borderColor='#E2E8F0';this.style.background='#F8FAFC'">
+                            <div @click="$refs.fileInput.click()" class="lf-upload-zone">
                                 <template x-if="!newItem.photo">
-                                    <div style="text-align:center;color:#94A3B8;">
-                                        <i data-lucide="image-plus" style="width:48px;height:48px;margin-bottom:8px;"></i>
-                                        <p style="font-size:14px;font-weight:500;">Klik untuk Pilih Foto</p>
+                                    <div class="lf-upload-empty">
+                                        <i data-lucide="image-plus" class="lf-upload-icon"></i>
+                                        <p>Klik untuk Pilih Foto</p>
                                     </div>
                                 </template>
                                 <template x-if="newItem.photo">
-                                    <div style="width:100%;height:100%;position:relative;">
-                                        <img :src="URL.createObjectURL(newItem.photo)"
-                                             style="width:100%;height:100%;object-fit:cover;">
-                                        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;"
-                                             onmouseover="this.style.opacity=1"
-                                             onmouseout="this.style.opacity=0">
-                                            <span style="color:white;background:rgba(0,0,0,0.5);padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;">
-                                                Ganti Foto
-                                            </span>
+                                    <div class="lf-upload-preview">
+                                        <img :src="URL.createObjectURL(newItem.photo)" alt="Preview foto barang">
+                                        <div class="lf-upload-overlay">
+                                            <span>Ganti Foto</span>
                                         </div>
                                     </div>
                                 </template>
@@ -374,8 +366,8 @@
                                 <i data-lucide="upload-cloud" class="icon-xs"></i>
                                 <span x-text="newItem.photo ? 'Ganti File' : 'Pilih File'"></span>
                             </button>
-                            <p style="text-align:center;font-size:12px;color:#94A3B8;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:4px;">
-                                <i data-lucide="info" style="width:12px;height:12px;"></i>
+                            <p class="lf-upload-hint">
+                                <i data-lucide="info"></i>
                                 Format: JPG, PNG. Max 5MB.
                             </p>
                         </div>
@@ -409,8 +401,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer"
-                     style="background:#F8FAFC;padding:20px 30px;border-top:1px solid #F1F5F9;display:flex;justify-content:flex-end;gap:12px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;">
+                <div class="modal-footer">
                     <button type="button" @click="showAddModal = false"
                             class="btn-secondary">Batal</button>
                     <button type="submit" class="btn-primary" :disabled="loading">
@@ -986,46 +977,66 @@ html.dark {
 .btn-primary:hover { background: #4338CA; transform: translateY(-1px); }
 
 .btn-secondary {
-    background: white; color: #4B5563;
+    background: var(--bg-white); color: var(--text-main);
     padding: .75rem 1.5rem; border-radius: .75rem; font-weight: 600;
     display: flex; align-items: center; justify-content: center; gap: .5rem;
-    border: 1px solid #E5E7EB; cursor: pointer; transition: all 0.2s;
+    border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s;
 }
 .btn-secondary:hover { background: var(--bg-hover); }
 
-.table-card {
-    background: var(--bg-white); border-radius: 1rem;
-    border: 1px solid var(--border-color); overflow: hidden;
+.table-container {
+    background: var(--bg-white) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    margin-bottom: 20px !important;
 }
-.data-table { width: 100%; border-collapse: collapse; }
-.data-table th {
-    text-align: left; padding: 1rem 1.5rem;
-    background: var(--bg-main); font-size: .75rem; font-weight: 600;
-    text-transform: uppercase; color: var(--text-muted);
-    letter-spacing: .05em; border-bottom: 1px solid var(--border-color);
+.premium-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    background: var(--bg-white) !important;
 }
-.data-table td {
-    padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color);
-    vertical-align: middle; color: var(--text-main); background: transparent;
+.premium-table th {
+    text-align: left;
+    padding: 1rem 1.5rem;
+    background: var(--bg-main);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: .875rem;
+    border-bottom: 1px solid var(--border-color);
 }
-.data-table tbody tr { transition: all .2s ease; }
-.data-table tbody tr:hover td,
-.data-table tbody tr:hover { background-color: var(--bg-hover) !important; }
+.premium-table td {
+    padding: 16px 24px;
+    background: transparent;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    color: var(--text-main);
+}
+.premium-table tbody tr {
+    transition: all .2s ease;
+    border-bottom: 1px solid var(--border-color);
+}
+.premium-table tbody tr:hover td,
+.premium-table tbody tr:hover { background-color: var(--bg-hover) !important; }
+.premium-table tbody tr:last-child td { border-bottom: none; }
 
 .item-cell { display: flex; align-items: center; gap: 1rem; }
 .item-img-container {
     width: 48px; height: 48px; border-radius: .75rem;
-    background: #F3F4F6; overflow: hidden;
+    background: var(--bg-main); overflow: hidden;
     display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border-color);
 }
 .item-thumb { width: 100%; height: 100%; object-fit: cover; }
 .item-thumb-placeholder { color: #9CA3AF; }
-.item-info { display: flex; flex-direction: column; }
-.item-name { font-weight: 600; color: var(--text-main); font-size: .9375rem; }
-.item-desc { font-size: .75rem; color: #6B7280; }
+.item-info { display: flex; flex-direction: column; min-width: 0; }
+.item-name { font-weight: 700; color: var(--text-main); font-size: .9375rem; }
+.item-desc { font-size: .75rem; color: var(--text-muted); }
 .reporter-info { display: flex; flex-direction: column; }
-.reporter-name { font-weight: 500; color: #374151; font-size: .875rem; }
-.reporter-nim  { font-size: .75rem; color: #9CA3AF; }
+.reporter-name { font-weight: 600; color: var(--text-main); font-size: .875rem; }
+.reporter-nim  { font-size: .75rem; color: var(--text-muted); }
+.location-text,
+.date-text { color: var(--text-main); font-weight: 500; }
 
 .status-badge {
     padding: .25rem .75rem; border-radius: 9999px;
@@ -1036,34 +1047,52 @@ html.dark {
 .status-warning { background: #FFFBEB; color: #D97706; }
 .status-neutral { background: #F9FAFB; color: #6B7280; }
 
-.action-buttons { display: flex; gap: .5rem; }
+.cell-actions { display: flex; gap: .5rem; }
 .action-btn {
     width: 34px; height: 34px;
     background: var(--bg-main); border: 1px solid var(--border-color);
-    border-radius: 8px; display: flex;
+    border-radius: 10px; display: flex;
     align-items: center; justify-content: center;
-    color: var(--text-muted); cursor: pointer; transition: all .2s;
+    color: var(--text-muted); cursor: pointer;
+    transition: all .2s cubic-bezier(.4,0,.2,1);
 }
 .action-btn:hover              { background: var(--bg-hover) !important; color: var(--text-main) !important; border-color: #CBD5E1 !important; transform: translateY(-1px); }
 .action-btn.text-primary:hover { color: var(--primary) !important; border-color: var(--primary) !important; }
 .action-btn.text-danger:hover  { color: var(--danger) !important;  border-color: var(--danger)  !important; }
 
-.pagination-container {
-    display: flex; justify-content: space-between;
-    align-items: center; padding: 1rem 1.5rem;
+.pagination-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
     background: var(--bg-white);
+    border-top: 1px solid var(--border-color);
 }
-.pagination-info    { font-size: .875rem; color: #6B7280; }
-.pagination-buttons { display: flex; align-items: center; gap: .5rem; }
-.pagination-btn {
-    padding: .5rem .75rem; border: 1px solid var(--border-color);
-    background: var(--bg-white); border-radius: .5rem;
-    font-size: .875rem; color: var(--text-main);
-    cursor: pointer; display: flex; align-items: center; gap: .25rem;
-}
-.pagination-btn:disabled { opacity: .5; cursor: not-allowed; }
-.pagination-btn.active { background: #4F46E5; color: white; border-color: #4F46E5; }
+.pagination-info { font-size: .875rem; color: var(--text-muted); font-weight: 500; }
+.pagination-btns { display: flex; align-items: center; gap: .5rem; }
 .page-numbers { display: flex; gap: .25rem; }
+.page-nav-btn,
+.page-num-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 .75rem;
+    border: 1px solid var(--border-color);
+    background: var(--bg-white);
+    color: var(--text-main);
+    border-radius: 8px;
+    font-size: .875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .25rem;
+    cursor: pointer;
+    transition: all .2s;
+}
+.page-nav-btn:hover:not(:disabled),
+.page-num-btn:hover { border-color: #3B82F6; color: #3B82F6; }
+.page-nav-btn:disabled { opacity: .5; cursor: not-allowed; }
+.page-num-btn.active { background: #3B82F6; color: #fff; border-color: #3B82F6; }
 
 /* ======================== DETAIL MODAL (dm-*) ======================== */
 
@@ -1331,14 +1360,113 @@ html.dark {
     background: var(--bg-white); flex-shrink: 0;
 }
 .modal-header h3 { font-size: 18px; font-weight: 700; color: var(--text-main); }
-.modal-body { padding: 30px; max-height: 60vh; overflow-y: auto; flex-grow: 1; }
+.modal-body {
+    padding: 30px;
+    max-height: 60vh;
+    overflow-y: auto;
+    flex-grow: 1;
+    background: var(--bg-white);
+    color: var(--text-main);
+}
 .modal-footer {
     padding: 24px 30px; background: var(--bg-main);
     border-top: 1px solid var(--border-color);
     display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0;
 }
+.lf-add-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+}
+.lf-upload-label,
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+.lf-upload-label {
+    display: block;
+    margin-bottom: 8px;
+}
+.lf-upload-zone {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--bg-main);
+    border: 2px dashed var(--border-color);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+    cursor: pointer;
+    transition: all .2s;
+}
+.lf-upload-zone:hover {
+    border-color: #4F46E5;
+    background: var(--bg-hover);
+}
+.lf-upload-empty {
+    text-align: center;
+    color: var(--text-muted);
+}
+.lf-upload-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+}
+.lf-upload-empty p {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+}
+.lf-upload-preview {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+.lf-upload-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.lf-upload-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity .2s;
+}
+.lf-upload-preview:hover .lf-upload-overlay { opacity: 1; }
+.lf-upload-overlay span {
+    color: #fff;
+    background: rgba(15, 23, 42, .7);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.lf-upload-hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.lf-upload-hint i,
+.lf-upload-hint svg {
+    width: 12px;
+    height: 12px;
+}
 .form-group { display: flex; flex-direction: column; gap: 8px; }
-.form-group label { font-size: 14px; font-weight: 600; color: #475569; }
 .form-group input, .form-group select, .form-group textarea {
     padding: 12px 16px; border: 1.5px solid var(--border-color);
     border-radius: 12px; font-size: 14px; transition: all .2s;
@@ -1394,6 +1522,31 @@ html.dark {
 }
 .toast-enter { animation: toastSlideIn .4s ease-out; }
 .toast-leave { animation: toastSlideIn .4s ease-in reverse; }
+
+@media (max-width: 768px) {
+    .toolbar-section,
+    .pagination-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-actions,
+    .pagination-btns {
+        flex-wrap: wrap;
+    }
+
+    .table-container {
+        overflow-x: auto !important;
+    }
+
+    .premium-table {
+        min-width: 820px;
+    }
+
+    .lf-add-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 
 @push('scripts')
@@ -1500,13 +1653,13 @@ html.dark {
                 this.comments.forEach(c => {
                     map[c.comment_id] = { ...c, is_reply: false, root_id: null };
                 });
-                
+
                 let roots = [];
-                
+
                 this.comments.forEach(c => {
                     const match = c.comment.match(/^\[re:(CMT[A-Z0-9]+)\]/i);
                     let targetId = match ? match[1] : null;
-                    
+
                     if (targetId && map[targetId]) {
                         let rootId = targetId;
                         while(map[rootId] && map[rootId].root_id) {
@@ -1516,17 +1669,17 @@ html.dark {
                         map[c.comment_id].is_reply = true;
                     }
                 });
-                
+
                 let threaded = [];
                 this.comments.forEach(c => {
                     if (!map[c.comment_id].is_reply) {
                         threaded.push({ ...c, all_replies: [] });
                     }
                 });
-                
+
                 let threadMap = {};
                 threaded.forEach(t => threadMap[t.comment_id] = t);
-                
+
                 this.comments.forEach(c => {
                     if (map[c.comment_id].is_reply) {
                         let rootId = map[c.comment_id].root_id;
@@ -1539,18 +1692,18 @@ html.dark {
                         }
                     }
                 });
-                
+
                 return threaded;
             },
 
             openAddModal()       { this.newItem = { item_name: '', description: '', location: '', status: 'lost', photo: null }; this.showAddModal = true; },
-            
-            async openDetailModal(i) { 
-                this.selectedItem = i; 
-                this.showDetailModal = true; 
+
+            async openDetailModal(i) {
+                this.selectedItem = i;
+                this.showDetailModal = true;
                 this.comments = [];
                 this.newComment = '';
-                
+
                 await this.loadComments(i.id);
                 this.listenToFirebase(i.id);
 
@@ -1582,7 +1735,7 @@ html.dark {
                 if (this.activeFirebaseRef) {
                     this.activeFirebaseRef.off();
                 }
-                
+
                 this.activeFirebaseRef = database.ref('lostfound_comments/' + lostfoundId);
                 this.activeFirebaseRef.on('child_added', (snapshot) => {
                     const newComment = snapshot.val();
@@ -1596,7 +1749,7 @@ html.dark {
                             commenter_name: newComment.commenter_name,
                             commenter_photo: newComment.commenter_photo,
                             time_ago: newComment.time_ago,
-                            user_id: newComment.user_id 
+                            user_id: newComment.user_id
                         });
                         this.scrollToBottom();
                         // Update total count on the card
@@ -1604,7 +1757,7 @@ html.dark {
                         if(idx !== -1) this.allItems[idx].comments_count = this.comments.length;
                     }
                 });
-                
+
                 // Handle child_removed for deleted comments
                 this.activeFirebaseRef.on('child_removed', (snapshot) => {
                     const deletedComment = snapshot.val();
@@ -1616,11 +1769,11 @@ html.dark {
 
             async submitComment() {
                 if (!this.newComment.trim() || this.isCommenting) return;
-                
+
                 this.isCommenting = true;
                 const tempComment = this.newComment;
                 this.newComment = '';
-                
+
                 try {
                     const response = await fetch(`{{ url('/api/lostfound') }}/${this.selectedItem.id}/comments`, {
                         method: 'POST',
@@ -1631,13 +1784,13 @@ html.dark {
                         },
                         body: JSON.stringify({ comment: tempComment })
                     });
-                    
+
                     if (!response.ok) {
                         throw new Error('Gagal mengirim komentar');
                     }
                 } catch (e) {
                     this.showToast(e.message, 'error');
-                    this.newComment = tempComment; 
+                    this.newComment = tempComment;
                 } finally {
                     this.isCommenting = false;
                 }
@@ -1645,7 +1798,7 @@ html.dark {
 
             async deleteComment(commentId) {
                 if(!confirm('Hapus komentar ini?')) return;
-                
+
                 try {
                     const response = await fetch(`{{ url('/api/lostfound/comments') }}/${commentId}`, {
                         method: 'DELETE',
@@ -1654,7 +1807,7 @@ html.dark {
                             'Accept': 'application/json'
                         }
                     });
-                    
+
                     if(response.ok) {
                         if (this.activeFirebaseRef) {
                             this.activeFirebaseRef.orderByChild('comment_id').equalTo(commentId).once('value', snapshot => {
