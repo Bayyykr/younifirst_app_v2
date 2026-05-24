@@ -28,20 +28,26 @@ class UserController extends Controller
     {
         $query = ViewUser::query();
 
-        if ($request->filled('search')) {
+        if ($request->filled("search")) {
             $q = $request->search;
             $query->where(function ($qb) use ($q) {
-                $qb->where('name', 'like', "%$q%")
-                   ->orWhere('email', 'like', "%$q%")
-                   ->orWhere('nim', 'like', "%$q%");
+                $qb->where("name", "like", "%$q%")
+                    ->orWhere("email", "like", "%$q%")
+                    ->orWhere("nim", "like", "%$q%");
             });
         }
-        if ($request->filled('role'))   $query->where('role', $request->role);
-        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled("role")) {
+            $query->where("role", $request->role);
+        }
+        if ($request->filled("status")) {
+            $query->where("status", $request->status);
+        }
 
-        $perPage = min((int) $request->input('per_page', 15), 100);
+        $perPage = min((int) $request->input("per_page", 15), 100);
 
-        return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
+        return response()->json(
+            $query->orderBy("created_at", "desc")->paginate($perPage),
+        );
     }
 
     /**
@@ -49,8 +55,8 @@ class UserController extends Controller
      */
     public function show(string $user_id)
     {
-        $user = ViewUser::where('user_id', $user_id)->firstOrFail();
-        return response()->json(['data' => $user]);
+        $user = ViewUser::where("user_id", $user_id)->firstOrFail();
+        return response()->json(["data" => $user]);
     }
 
     /**
@@ -59,45 +65,56 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-            'role'     => 'required|in:admin,user',
-            'nim'      => 'nullable|string|max:15',
-            'prodi'    => 'nullable|string|max:50',
-            'status'   => 'nullable|in:active,inactive,suspended,blocked',
+            "name" => "required|string|max:255",
+            "email" => "required|email|unique:users,email",
+            "password" => "required|string|min:8",
+            "role" => "required|in:admin,user",
+            "nim" => "nullable|string|max:15",
+            "prodi" => "nullable|string|max:50",
+            "status" => "nullable|in:active,inactive,suspended,blocked",
         ]);
 
         // 1. Create user in Firebase
         $firebaseUid = $this->firebase->createUser(
-            $validated['email'],
-            $validated['password'],
-            $validated['name']
+            $validated["email"],
+            $validated["password"],
+            $validated["name"],
         );
 
         if (!$firebaseUid) {
-            return response()->json([
-                'message' => 'Gagal membuat user di Firebase. Silakan periksa log server atau kredensial Firebase.'
-            ], 500);
+            return response()->json(
+                [
+                    "message" =>
+                        "Gagal membuat user di Firebase. Silakan periksa log server atau kredensial Firebase.",
+                ],
+                500,
+            );
         }
 
         try {
             // 2. Create user in MySQL
             $user = new User();
             // Generate custom ID: USR + 7 random characters (total 10)
-            $user->user_id = 'USR' . strtoupper(Str::random(7));
+            $user->user_id = "USR" . strtoupper(Str::random(7));
             $user->fill($validated);
-            $user->password = Hash::make($validated['password']);
+            $user->password = Hash::make($validated["password"]);
             $user->firebase_uid = $firebaseUid;
             $user->created_at = now();
             $user->save();
 
-            return response()->json(['message' => 'User created successfully', 'data' => $user], 201);
+            return response()->json(
+                ["message" => "User created successfully", "data" => $user],
+                201,
+            );
         } catch (\Exception $e) {
-            Log::error('MySQL User Creation Failed: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Gagal menyimpan user ke database. Silakan periksa log server.'
-            ], 500);
+            Log::error("MySQL User Creation Failed: " . $e->getMessage());
+            return response()->json(
+                [
+                    "message" =>
+                        "Gagal menyimpan user ke database. Silakan periksa log server.",
+                ],
+                500,
+            );
         }
     }
 
@@ -106,39 +123,48 @@ class UserController extends Controller
      */
     public function update(Request $request, string $user_id)
     {
-        $user = User::where('user_id', $user_id)->firstOrFail();
+        $user = User::where("user_id", $user_id)->firstOrFail();
 
         $validated = $request->validate([
-            'name'     => 'sometimes|required|string|max:255',
-            'email'    => 'sometimes|required|email|unique:users,email,' . $user->user_id . ',user_id',
-            'role'     => 'sometimes|required|in:admin,user',
-            'nim'      => 'nullable|string|max:15',
-            'prodi'    => 'nullable|string|max:50',
+            "name" => "sometimes|required|string|max:255",
+            "email" =>
+                "sometimes|required|email|unique:users,email," .
+                $user->user_id .
+                ",user_id",
+            "role" => "sometimes|required|in:admin,user",
+            "nim" => "nullable|string|max:15",
+            "prodi" => "nullable|string|max:50",
             // Suspension fields
-            'status'   => 'sometimes|string|in:active,suspended,blocked',
-            'duration' => 'required_if:status,suspended|string',
-            'reason'   => 'required_if:status,suspended|string',
-            'notes'    => 'nullable|string',
+            "status" => "sometimes|string|in:active,suspended,blocked",
+            "duration" => "required_if:status,suspended|string",
+            "reason" => "required_if:status,suspended|string",
+            "notes" => "nullable|string",
         ]);
 
-        if ($request->status === 'suspended') {
+        if ($request->status === "suspended") {
             $endsAt = null;
-            if ($request->duration !== 'custom' && is_numeric($request->duration)) {
+            if (
+                $request->duration !== "custom" &&
+                is_numeric($request->duration)
+            ) {
                 $endsAt = now()->addDays((int) $request->duration);
             }
 
             \App\Models\UserSuspension::create([
-                'user_id' => $user->user_id,
-                'duration' => $request->duration,
-                'reason'   => $request->reason,
-                'internal_notes' => $request->notes,
-                'ends_at'  => $endsAt,
+                "user_id" => $user->user_id,
+                "duration" => $request->duration,
+                "reason" => $request->reason,
+                "internal_notes" => $request->notes,
+                "ends_at" => $endsAt,
             ]);
         }
 
         $user->update($validated);
 
-        return response()->json(['message' => 'User updated successfully', 'data' => $user]);
+        return response()->json([
+            "message" => "User updated successfully",
+            "data" => $user,
+        ]);
     }
 
     /**
@@ -148,13 +174,15 @@ class UserController extends Controller
     public function updateFcmToken(Request $request)
     {
         $request->validate([
-            'fcm_token' => 'required|string',
+            "fcm_token" => "required|string",
         ]);
 
         $user = $request->user();
-        $user->update(['fcm_token' => $request->fcm_token]);
+        $user->update(["fcm_token" => $request->fcm_token]);
 
-        return response()->json(['message' => 'FCM token updated successfully']);
+        return response()->json([
+            "message" => "FCM token updated successfully",
+        ]);
     }
 
     /**
@@ -165,34 +193,64 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        $validated = $request->validate([
-            'name'  => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:users,email,' . $user->user_id . ',user_id',
-            'nim'   => 'nullable|string|max:15',
-            'prodi' => 'nullable|string|max:50',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
-        ]);
+        $photoFields = [
+            "photo",
+            "profile_photo",
+            "profile_image",
+            "avatar",
+            "image",
+        ];
+        $photoField = collect($photoFields)->first(
+            fn($field) => $request->hasFile($field),
+        );
 
-        if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($user->photo) {
-                Storage::disk('public')->delete($user->photo);
-            }
-            $path = $request->file('photo')->store('profiles', 'public');
-            $user->photo = $path;
+        $rules = [
+            "name" => "sometimes|required|string|max:255",
+            "email" =>
+                "sometimes|required|email|unique:users,email," .
+                $user->user_id .
+                ",user_id",
+            "nim" => "nullable|string|max:15",
+            "prodi" => "nullable|string|max:50",
+        ];
+
+        foreach ($photoFields as $field) {
+            $rules[$field] = "nullable|image|mimes:jpeg,png,jpg,webp|max:5120";
         }
 
-        $user->fill($request->only(['name', 'email', 'nim', 'prodi']));
+        $request->validate($rules);
 
-        if ($user->isDirty('email')) {
+        if ($photoField) {
+            $path = $request->file($photoField)->store("profiles", "public");
+
+            if (!$path) {
+                return response()->json(
+                    [
+                        "message" => "Failed to upload profile photo",
+                    ],
+                    500,
+                );
+            }
+
+            $oldPhoto = $user->photo;
+            $user->photo = $path;
+
+            if ($oldPhoto) {
+                Storage::disk("public")->delete($oldPhoto);
+            }
+        }
+
+        $user->fill($request->only(["name", "email", "nim", "prodi"]));
+
+        if ($user->isDirty("email")) {
             $user->email_verified_at = null;
         }
 
         $user->save();
 
         return response()->json([
-            'message' => 'Profile updated successfully',
-            'data'    => $user
+            "message" => "Profile updated successfully",
+            "data" => $user,
         ]);
     }
 }

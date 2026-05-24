@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Route;
  * ─────────────────────────────────────────────────────────────
  */
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post("/login", [AuthController::class, "login"]);
+Route::post("/forgot-password", [AuthController::class, "forgotPassword"]);
+Route::post("/reset-password", [AuthController::class, "resetPassword"]);
 
 /**
  * ─────────────────────────────────────────────────────────────
@@ -26,11 +26,10 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
  * ─────────────────────────────────────────────────────────────
  */
 
-Route::middleware('auth:sanctum')->group(function () {
-
+Route::middleware("auth:sanctum")->group(function () {
     // Auth Status & Logout
-    Route::get('/user', function (Request $request) {
-        return $request->user()->load(['teams.members']);
+    Route::get("/user", function (Request $request) {
+        return $request->user()->load(["teams.members"]);
     });
     // ── USERS ────────────────────────────────────────────────
     Route::prefix('users')->controller(UserController::class)->group(function () {
@@ -43,55 +42,66 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{user_id}', 'destroy');
     });
 
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post("/logout", [AuthController::class, "logout"]);
 
     // ── EVENTS ───────────────────────────────────────────────
-    Route::prefix('events')->controller(EventController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::get('/{event_id}', 'show');
-        Route::get('/{event_id}/likes', 'likes');
-        Route::post('/add', 'store');
-        Route::put('/{event_id}', 'update');
-        Route::delete('/{event_id}', 'destroy');
-        Route::post('/{event_id}/like', 'toggleLike');
-    });
+    Route::prefix("events")
+        ->controller(EventController::class)
+        ->group(function () {
+            Route::get("/", "index");
+            Route::get("/{event_id}", "show");
+            Route::get("/{event_id}/likes", "likes");
+            Route::post("/add", "store");
+            Route::put("/{event_id}", "update");
+            Route::delete("/{event_id}", "destroy");
+            Route::post("/{event_id}/like", "toggleLike");
+        });
 
     // ── TEAMS ────────────────────────────────────────────────
-    Route::prefix('teams')->controller(TeamController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::get('/my-applications', 'myApplications');
-        Route::get('/{team_id}', 'show');
-        Route::get('/{team_id}/applications', 'applications');
-        Route::get('/{team_id}/members', 'members');
-        Route::post('/add', 'store');
-        Route::put('/{team_id}', 'update');
-        Route::delete('/{team_id}', 'destroy');
-        Route::post('/{team_id}/join', 'join');
-        Route::post('/{team_id}/members/{member_id}/respond', 'respondJoin');
-        Route::post('/{team_id}/report', 'storeReport');
-    });
+    Route::prefix("teams")
+        ->controller(TeamController::class)
+        ->group(function () {
+            Route::get("/", "index");
+            Route::get("/my-applications", "myApplications");
+            Route::get("/{team_id}", "show");
+            Route::get("/{team_id}/applications", "applications");
+            Route::get("/{team_id}/members", "members");
+            Route::post("/add", "store");
+            Route::put("/{team_id}", "update");
+            Route::delete("/{team_id}", "destroy");
+            Route::post("/{team_id}/join", "join");
+            Route::post(
+                "/{team_id}/members/{member_id}/respond",
+                "respondJoin",
+            );
+            Route::post("/{team_id}/report", "storeReport");
+        });
 
     // ── ANNOUNCEMENTS ─────────────────────────────────────────
-    Route::prefix('announcements')->controller(AnnouncementController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::get('/{announcement_id}', 'show');
-        Route::post('/add', 'store');
-        Route::put('/{announcement_id}', 'update');
-        Route::delete('/{announcement_id}', 'destroy');
-    });
+    Route::prefix("announcements")
+        ->controller(AnnouncementController::class)
+        ->group(function () {
+            Route::get("/", "index");
+            Route::get("/{announcement_id}", "show");
+            Route::post("/add", "store");
+            Route::put("/{announcement_id}", "update");
+            Route::delete("/{announcement_id}", "destroy");
+        });
 
     // ── LOST & FOUND ─────────────────────────────────────────
-    Route::prefix('lostfound')->controller(LostfoundController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::get('/{lostfound_id}', 'show');
-        Route::get('/{lostfound_id}/comments', 'comments');
-        Route::post('/add', 'store');
-        Route::put('/{lostfound_id}', 'update');
-        Route::delete('/{lostfound_id}', 'destroy');
-        Route::post('/{lostfound_id}/comments', 'addComment');
-        Route::put('/comments/{comment_id}', 'updateComment');
-        Route::delete('/comments/{comment_id}', 'deleteComment');
-    });
+    Route::prefix("lostfound")
+        ->controller(LostfoundController::class)
+        ->group(function () {
+            Route::get("/", "index");
+            Route::get("/{lostfound_id}", "show");
+            Route::get("/{lostfound_id}/comments", "comments");
+            Route::post("/add", "store");
+            Route::put("/{lostfound_id}", "update");
+            Route::delete("/{lostfound_id}", "destroy");
+            Route::post("/{lostfound_id}/comments", "addComment");
+            Route::put("/comments/{comment_id}", "updateComment");
+            Route::delete("/comments/{comment_id}", "deleteComment");
+        });
     // ── CHAT ──────────────────────────────────────────────────
-    Route::get('/chat/token', [ChatController::class, 'getFirebaseToken']);
+    Route::get("/chat/token", [ChatController::class, "getFirebaseToken"]);
 });
