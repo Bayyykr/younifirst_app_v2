@@ -197,12 +197,34 @@ class UserController extends Controller
             "photo",
             "profile_photo",
             "profile_image",
+            "profile_picture",
+            "profilePicture",
             "avatar",
             "image",
+            "foto",
         ];
         $photoField = collect($photoFields)->first(
             fn($field) => $request->hasFile($field),
         );
+        $photoPathField = collect($photoFields)->first(
+            fn($field) => $request->filled($field) &&
+                !$request->hasFile($field),
+        );
+
+        if ($photoPathField) {
+            return response()->json(
+                [
+                    "message" =>
+                        "Foto profil harus dikirim sebagai file multipart/form-data, bukan path string dari device.",
+                    "errors" => [
+                        $photoPathField => [
+                            "Gunakan field file '{$photoPathField}' dengan isi binary file. Path lokal seperti /storage/emulated/... tidak bisa dibaca oleh server.",
+                        ],
+                    ],
+                ],
+                422,
+            );
+        }
 
         $rules = [
             "name" => "sometimes|required|string|max:255",
@@ -250,7 +272,7 @@ class UserController extends Controller
 
         return response()->json([
             "message" => "Profile updated successfully",
-            "data" => $user,
+            "data" => $user->fresh(),
         ]);
     }
 }

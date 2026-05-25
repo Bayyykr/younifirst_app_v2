@@ -32,16 +32,19 @@ Route::middleware("auth:sanctum")->group(function () {
         return $request->user()->load(["teams.members"]);
     });
     // ── USERS ────────────────────────────────────────────────
-    Route::prefix('users')->controller(UserController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::post('/fcm-token', 'updateFcmToken');
-        Route::get('/{user_id}', 'show');
-        Route::post('/add', 'store');
-        Route::post('/profile', 'updateProfile');
-        Route::put('/{user_id}', 'update');
-        Route::delete('/{user_id}', 'destroy');
-    });
+    Route::prefix("users")
+        ->controller(UserController::class)
+        ->group(function () {
+            Route::get("/", "index");
+            Route::post("/fcm-token", "updateFcmToken");
+            Route::get("/{user_id}", "show");
+            Route::post("/add", "store");
+            Route::post("/profile", "updateProfile");
+            Route::put("/{user_id}", "update");
+            Route::delete("/{user_id}", "destroy");
+        });
 
+    Route::post("/change-password", [AuthController::class, "changePassword"]);
     Route::post("/logout", [AuthController::class, "logout"]);
 
     // ── EVENTS ───────────────────────────────────────────────

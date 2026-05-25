@@ -111,6 +111,66 @@ class AuthController extends Controller
     }
 
     /**
+     * POST /api/change-password
+     * Change password for authenticated user.
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            "current_password" => "required|string",
+            "new_password" =>
+                "required|string|min:8|confirmed|different:current_password",
+        ]);
+
+        $user = $request->user();
+
+        $firebaseAuthenticated = $this->firebase->signInWithEmailAndPassword(
+            $user->email,
+            $request->current_password,
+        );
+
+        if (
+            !$firebaseAuthenticated &&
+            !Hash::check($request->current_password, $user->password)
+        ) {
+            return response()->json(
+                [
+                    "message" => "Password lama tidak sesuai.",
+                    "errors" => [
+                        "current_password" => ["Password lama tidak sesuai."],
+                    ],
+                ],
+                422,
+            );
+        }
+
+        if ($user->firebase_uid) {
+            $firebaseUpdated = $this->firebase->updateUserPassword(
+                $user->firebase_uid,
+                $request->new_password,
+            );
+
+            if (!$firebaseUpdated) {
+                return response()->json(
+                    [
+                        "message" =>
+                            "Gagal mengupdate password di server autentikasi.",
+                    ],
+                    500,
+                );
+            }
+        }
+
+        $user->update([
+            "password" => Hash::make($request->new_password),
+        ]);
+
+        return response()->json([
+            "message" => "Password berhasil diubah.",
+        ]);
+    }
+
+    /**
      * POST /api/forgot-password
      * Request OTP for password reset
      */
@@ -165,9 +225,12 @@ class AuthController extends Controller
             ->first();
 
         if (!$resetRecord) {
-            return response()->json([
-                "message" => "OTP tidak valid.",
-            ], 400);
+            return response()->json(
+                [
+                    "message" => "OTP tidak valid.",
+                ],
+                400,
+            );
         }
 
         // Check if OTP is expired (older than 15 minutes)
@@ -175,9 +238,12 @@ class AuthController extends Controller
             DB::table("password_reset_tokens")
                 ->where("email", $request->email)
                 ->delete();
-            return response()->json([
-                "message" => "OTP sudah kedaluwarsa.",
-            ], 400);
+            return response()->json(
+                [
+                    "message" => "OTP sudah kedaluwarsa.",
+                ],
+                400,
+            );
         }
 
         $user = User::where("email", $request->email)->first();
@@ -189,9 +255,13 @@ class AuthController extends Controller
                 $request->new_password,
             );
             if (!$firebaseUpdated) {
-                return response()->json([
-                    "message" => "Gagal mengupdate password di server autentikasi.",
-                ], 500);
+                return response()->json(
+                    [
+                        "message" =>
+                            "Gagal mengupdate password di server autentikasi.",
+                    ],
+                    500,
+                );
             }
         }
 
