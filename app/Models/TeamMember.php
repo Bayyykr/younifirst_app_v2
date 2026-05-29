@@ -10,13 +10,25 @@ class TeamMember extends Model
     use HasFactory;
 
     protected $table = 'team_members';
+
     protected $primaryKey = 'member_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = [
-        'member_id', 'team_id', 'user_id', 'role', 'status', 'portfolio', 'proposed_role', 'description',
+        'member_id',
+        'team_id',
+        'user_id',
+        'role',
+        'status',
+        'rejection_reason',
+        'portfolio',
+        'proposed_role',
+        'description',
     ];
 
     public function team()

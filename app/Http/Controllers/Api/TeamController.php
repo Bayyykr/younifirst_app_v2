@@ -8,8 +8,10 @@ use App\Models\TeamMember;
 use App\Models\Views\ViewTeam;
 use App\Models\Views\ViewTeamMember;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TeamController extends Controller
 {
@@ -18,27 +20,40 @@ class TeamController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ViewTeam::with('members')->where('status', 'approved');
+        $query = ViewTeam::with('members');
+        $status = strtolower((string) $request->input('status', 'approved'));
+
+        if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            $query->where('status', $status);
+        } else {
+            $query->where('status', 'approved');
+        }
 
         if ($request->filled('search')) {
             $q = $request->search;
             $query->where(function ($qb) use ($q) {
-                $qb->where('team_name', 'like', "%$q%")
-                   ->orWhere('competition_name', 'like', "%$q%");
+                $qb->where('team_name', 'like', "%$q%")->orWhere(
+                    'competition_name',
+                    'like',
+                    "%$q%",
+                );
             });
         }
 
-        if ($request->filled('status')) {
-            match (strtolower($request->status)) {
+        if (in_array($status, ['open', 'full'], true)) {
+            match ($status) {
                 'open' => $query->whereRaw('current_member_count < max_member'),
-                'full' => $query->whereRaw('current_member_count >= max_member'),
-                default => null,
+                'full' => $query->whereRaw(
+                    'current_member_count >= max_member',
+                ),
             };
         }
 
         $perPage = min((int) $request->input('per_page', 15), 100);
 
-        return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
+        return response()->json(
+            $query->orderBy('created_at', 'desc')->paginate($perPage),
+        );
     }
 
     /**
@@ -46,7 +61,10 @@ class TeamController extends Controller
      */
     public function show(string $team_id)
     {
-        $team = ViewTeam::with('members')->where('team_id', $team_id)->firstOrFail();
+        $team = ViewTeam::with('members')
+            ->where('team_id', $team_id)
+            ->firstOrFail();
+
         return response()->json(['data' => $team]);
     }
 
@@ -57,8 +75,12 @@ class TeamController extends Controller
     {
         $query = ViewTeamMember::where('team_id', $team_id);
 
-        if ($request->filled('role'))   $query->where('member_role', $request->role);
-        if ($request->filled('status')) $query->where('member_status', $request->status);
+        if ($request->filled('role')) {
+            $query->where('member_role', $request->role);
+        }
+        if ($request->filled('status')) {
+            $query->where('member_status', $request->status);
+        }
 
         $perPage = min((int) $request->input('per_page', 20), 100);
 
@@ -71,8 +93,10 @@ class TeamController extends Controller
     public function myApplications(Request $request)
     {
         $user = $request->user();
-        $query = ViewTeamMember::where('user_id', $user->user_id)
-            ->where('member_role', 'member');
+        $query = ViewTeamMember::where('user_id', $user->user_id)->where(
+            'member_role',
+            'member',
+        );
 
         if ($request->filled('status')) {
             $query->where('member_status', $request->status);
@@ -80,7 +104,9 @@ class TeamController extends Controller
 
         $perPage = min((int) $request->input('per_page', 15), 100);
 
-        return response()->json($query->orderBy('team_name', 'asc')->paginate($perPage));
+        return response()->json(
+            $query->orderBy('team_name', 'asc')->paginate($perPage),
+        );
     }
 
     /**
@@ -90,8 +116,10 @@ class TeamController extends Controller
     {
         $team = Team::where('team_id', $team_id)->firstOrFail();
 
-        $query = ViewTeamMember::where('team_id', $team_id)
-            ->where('member_role', 'member');
+        $query = ViewTeamMember::where('team_id', $team_id)->where(
+            'member_role',
+            'member',
+        );
 
         $status = $request->input('status', 'pending');
         if ($status !== 'all') {
@@ -109,31 +137,37 @@ class TeamController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'team_name'        => 'required|string|max:50',
+            'team_name' => 'required|string|max:50',
             'competition_name' => 'required|string|max:100',
-            'description'      => 'required|string',
-            'max_member'       => 'required|integer|min:1',
+            'description' => 'required|string',
+            'max_member' => 'required|integer|min:1',
         ]);
 
         return DB::transaction(function () use ($validated, $request) {
-            $team = new Team();
+            $team = new Team;
             // Generate custom ID: TEM + 7 random characters (total 10)
-            $team->team_id = 'TEM' . strtoupper(Str::random(7));
+            $team->team_id = 'TEM'.strtoupper(Str::random(7));
             $team->fill($validated);
-            $team->created_at = \Illuminate\Support\Carbon::now();
+            $team->created_at = Carbon::now();
             $team->status = 'pending'; // Explicitly set pending
             $team->save();
 
             // Automatically add creator as leader
-            $member = new TeamMember();
-            $member->member_id = 'MEM' . strtoupper(Str::random(7));
-            $member->team_id   = $team->team_id;
-            $member->user_id   = $request->user()->user_id;
-            $member->role      = 'leader';
-            $member->status    = 'pending';
+            $member = new TeamMember;
+            $member->member_id = 'MEM'.strtoupper(Str::random(7));
+            $member->team_id = $team->team_id;
+            $member->user_id = $request->user()->user_id;
+            $member->role = 'leader';
+            $member->status = 'pending';
             $member->save();
 
-            return response()->json(['message' => 'Team created successfully and waiting for admin approval', 'data' => $team], 211);
+            return response()->json(
+                [
+                    'message' => 'Team created successfully and waiting for admin approval',
+                    'data' => $team,
+                ],
+                211,
+            );
         });
     }
 
@@ -145,17 +179,20 @@ class TeamController extends Controller
         $team = Team::where('team_id', $team_id)->firstOrFail();
 
         $validated = $request->validate([
-            'team_name'        => 'sometimes|required|string|max:50',
+            'team_name' => 'sometimes|required|string|max:50',
             'competition_name' => 'sometimes|required|string|max:100',
-            'description'      => 'sometimes|required|string',
-            'max_member'       => 'sometimes|required|integer|min:1',
+            'description' => 'sometimes|required|string',
+            'max_member' => 'sometimes|required|integer|min:1',
         ]);
 
         $team->fill($validated);
         $team->updated_at = now();
         $team->save();
 
-        return response()->json(['message' => 'Team updated successfully', 'data' => $team]);
+        return response()->json([
+            'message' => 'Team updated successfully',
+            'data' => $team,
+        ]);
     }
 
     /**
@@ -175,17 +212,22 @@ class TeamController extends Controller
     public function join(string $team_id, Request $request)
     {
         $user = $request->user();
-        
+
         $team = Team::where('team_id', $team_id)->firstOrFail();
 
         $validated = $request->validate([
-            'portfolio'     => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120', // PDF or Image, max 5MB
+            'portfolio' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:5120', // PDF or Image, max 5MB
             'proposed_role' => 'required|string|max:100',
-            'description'   => 'required|string|max:1000',
+            'description' => 'required|string|max:1000',
         ]);
 
         if ($team->status !== 'approved') {
-            return response()->json(['message' => 'You cannot join a team that is not yet approved by admin'], 422);
+            return response()->json(
+                [
+                    'message' => 'You cannot join a team that is not yet approved by admin',
+                ],
+                422,
+            );
         }
 
         $viewTeam = ViewTeam::where('team_id', $team_id)->first();
@@ -198,17 +240,22 @@ class TeamController extends Controller
             ->exists();
 
         if ($isMember) {
-            return response()->json(['message' => 'You are already a member or have a pending request'], 422);
+            return response()->json(
+                [
+                    'message' => 'You are already a member or have a pending request',
+                ],
+                422,
+            );
         }
 
-        $member = new TeamMember();
-        $member->member_id = 'MEM' . strtoupper(Str::random(7));
-        $member->team_id   = $team_id;
-        $member->user_id   = $user->user_id;
-        $member->role      = 'member';
-        $member->status    = 'pending'; // Set to pending by default
+        $member = new TeamMember;
+        $member->member_id = 'MEM'.strtoupper(Str::random(7));
+        $member->team_id = $team_id;
+        $member->user_id = $user->user_id;
+        $member->role = 'member';
+        $member->status = 'pending'; // Set to pending by default
         $member->proposed_role = $validated['proposed_role'];
-        $member->description   = $validated['description'];
+        $member->description = $validated['description'];
 
         if ($request->hasFile('portfolio')) {
             $path = $request->file('portfolio')->store('portfolios', 'public');
@@ -217,22 +264,34 @@ class TeamController extends Controller
 
         $member->save();
 
-        return response()->json([
-            'message' => 'Join request sent successfully. Waiting for leader approval.',
-            'data'    => $member
-        ], 201);
+        return response()->json(
+            [
+                'message' => 'Join request sent successfully. Waiting for leader approval.',
+                'data' => $member,
+            ],
+            201,
+        );
     }
 
     /**
      * POST /api/teams/{team_id}/members/{member_id}/respond
      */
-    public function respondJoin(string $team_id, string $member_id, Request $request)
-    {
+    public function respondJoin(
+        string $team_id,
+        string $member_id,
+        Request $request,
+    ) {
         $leader = $request->user();
-        
-        $validated = $request->validate([
-            'action' => 'required|in:accept,reject'
-        ]);
+
+        $validated = $request->validate(
+            [
+                'action' => 'required|in:accept,reject',
+                'rejection_reason' => 'required_if:action,reject|nullable|string|max:1000',
+            ],
+            [
+                'rejection_reason.required_if' => 'Alasan penolakan wajib diisi.',
+            ],
+        );
 
         // 1. Verify requester is the LEADER of this team
         $isLeader = TeamMember::where('team_id', $team_id)
@@ -240,8 +299,13 @@ class TeamController extends Controller
             ->where('role', 'leader')
             ->exists();
 
-        if (!$isLeader) {
-            return response()->json(['message' => 'Only the team leader can respond to join requests.'], 403);
+        if (! $isLeader) {
+            return response()->json(
+                [
+                    'message' => 'Only the team leader can respond to join requests.',
+                ],
+                403,
+            );
         }
 
         // 2. Find the pending member
@@ -250,15 +314,20 @@ class TeamController extends Controller
             ->firstOrFail();
 
         if ($member->status !== 'pending') {
-            return response()->json(['message' => 'This member is not in pending status.'], 422);
+            return response()->json(
+                ['message' => 'This member is not in pending status.'],
+                422,
+            );
         }
 
         // 3. Handle action
         if ($validated['action'] === 'accept') {
             $member->status = 'active';
+            $member->rejection_reason = null;
             $message = 'Member request accepted.';
         } else {
             $member->status = 'rejected';
+            $member->rejection_reason = $validated['rejection_reason'];
             $message = 'Member request rejected.';
         }
 
@@ -266,7 +335,7 @@ class TeamController extends Controller
 
         return response()->json([
             'message' => $message,
-            'data'    => $member
+            'data' => $member,
         ]);
     }
 
@@ -279,7 +348,12 @@ class TeamController extends Controller
         $team = Team::where('team_id', $team_id)->firstOrFail();
 
         if ($team->status !== 'approved') {
-            return response()->json(['message' => 'Laporan hanya bisa diunggah untuk tim yang sudah disetujui admin.'], 422);
+            return response()->json(
+                [
+                    'message' => 'Laporan hanya bisa diunggah untuk tim yang sudah disetujui admin.',
+                ],
+                422,
+            );
         }
 
         // Pastikan user merupakan bagian dari tim ini (leader maupun member)
@@ -287,44 +361,52 @@ class TeamController extends Controller
             ->where('user_id', $user->user_id)
             ->exists();
 
-        if (!$isPart) {
-            return response()->json(['message' => 'Anda bukan bagian dari tim ini.'], 403);
+        if (! $isPart) {
+            return response()->json(
+                ['message' => 'Anda bukan bagian dari tim ini.'],
+                403,
+            );
         }
 
-        $validated = $request->validate([
-            'achievement_rank'  => 'required|string|max:50',
-            'competition_level' => 'required|in:kampus,regional,nasional,internasional',
-            'photo_activity'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
-            'photo_certificate' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
-        ], [
-            'achievement_rank.required'  => 'Prestasi/juara harus diisi.',
-            'competition_level.required' => 'Tingkat lomba harus dipilih.',
-            'photo_activity.image'       => 'File foto kegiatan harus berupa gambar.',
-            'photo_activity.max'         => 'Ukuran foto kegiatan maksimal 5MB.',
-            'photo_certificate.image'    => 'File foto sertifikat harus berupa gambar.',
-            'photo_certificate.max'      => 'Ukuran foto sertifikat maksimal 5MB.',
-        ]);
+        $validated = $request->validate(
+            [
+                'achievement_rank' => 'required|string|max:50',
+                'competition_level' => 'required|in:kampus,regional,nasional,internasional',
+                'photo_activity' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+                'photo_certificate' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            ],
+            [
+                'achievement_rank.required' => 'Prestasi/juara harus diisi.',
+                'competition_level.required' => 'Tingkat lomba harus dipilih.',
+                'photo_activity.image' => 'File foto kegiatan harus berupa gambar.',
+                'photo_activity.max' => 'Ukuran foto kegiatan maksimal 5MB.',
+                'photo_certificate.image' => 'File foto sertifikat harus berupa gambar.',
+                'photo_certificate.max' => 'Ukuran foto sertifikat maksimal 5MB.',
+            ],
+        );
 
         $updateData = [
-            'achievement_rank'  => $validated['achievement_rank'],
+            'achievement_rank' => $validated['achievement_rank'],
             'competition_level' => $validated['competition_level'],
         ];
 
         // Handle foto kegiatan
         if ($request->hasFile('photo_activity')) {
             if ($team->photo_activity) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($team->photo_activity);
+                Storage::disk('public')->delete($team->photo_activity);
             }
-            $updateData['photo_activity'] = $request->file('photo_activity')
+            $updateData['photo_activity'] = $request
+                ->file('photo_activity')
                 ->store('teams/activity', 'public');
         }
 
         // Handle foto sertifikat
         if ($request->hasFile('photo_certificate')) {
             if ($team->photo_certificate) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($team->photo_certificate);
+                Storage::disk('public')->delete($team->photo_certificate);
             }
-            $updateData['photo_certificate'] = $request->file('photo_certificate')
+            $updateData['photo_certificate'] = $request
+                ->file('photo_certificate')
                 ->store('teams/certificate', 'public');
         }
 
@@ -333,12 +415,16 @@ class TeamController extends Controller
         return response()->json([
             'message' => 'Laporan hasil lomba berhasil diunggah.',
             'data' => [
-                'team_id'           => $team->team_id,
-                'achievement_rank'  => $team->achievement_rank,
+                'team_id' => $team->team_id,
+                'achievement_rank' => $team->achievement_rank,
                 'competition_level' => $team->competition_level,
-                'photo_activity'    => $team->photo_activity ? asset('storage/' . $team->photo_activity) : null,
-                'photo_certificate' => $team->photo_certificate ? asset('storage/' . $team->photo_certificate) : null,
-            ]
+                'photo_activity' => $team->photo_activity
+                    ? asset('storage/'.$team->photo_activity)
+                    : null,
+                'photo_certificate' => $team->photo_certificate
+                    ? asset('storage/'.$team->photo_certificate)
+                    : null,
+            ],
         ]);
     }
 }

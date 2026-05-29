@@ -70,6 +70,11 @@
                         <label>Bio / Deskripsi Tim</label>
                         <p x-text="selectedDetailTeam?.description"></p>
                     </div>
+
+                    <div class="team-bio" x-show="selectedDetailTeam?.status === 'rejected' && selectedDetailTeam?.rejection_reason">
+                        <label>Alasan Penolakan</label>
+                        <p x-text="selectedDetailTeam?.rejection_reason"></p>
+                    </div>
                 </div>
 
                 <div class="modal-footer-premium">
@@ -175,7 +180,7 @@
             <div class="modal-container respond-modal" @click.away="showRespondModal = false"
                 x-transition:enter="modal-slide-in">
                 <div :class="`respond-icon-circle ${respondAction === 'approve' ? 'bg-green-light' : 'bg-red-light'}`">
-                    <i :data-lucide="respondAction === 'approve' ? 'check-circle' : 'slash'"></i>
+                    <i :data-lucide="respondAction === 'approve' ? 'check-circle' : 'x'"></i>
                 </div>
                 <h3
                     x-text="respondAction === 'approve' ? (respondType === 'team' ? 'Setujui Tim?' : 'Setujui Permohonan?') : (respondType === 'team' ? 'Tolak Tim?' : 'Tolak Permohonan?')">
@@ -184,15 +189,18 @@
                     Konfirmasi permohonan untuk <span x-text="respondType === 'team' ? 'tim ' : 'anggota '"></span>
                     <strong x-text="selectedItem?.team_name || selectedItem?.user_name"></strong>.
                 </p>
+                <div class="form-group rejection-reason-group" x-show="respondAction === 'reject'">
+                    <label>Alasan Penolakan<span>*</span></label>
+                    <textarea x-model="rejectionReason" rows="4" maxlength="1000"
+                        placeholder="Jelaskan alasan penolakan agar pengguna dapat memperbaikinya."></textarea>
+                </div>
                 <div class="modal-actions">
                     <button type="button" @click="showRespondModal = false" class="btn-secondary" :disabled="loading">
-                        <i data-lucide="x" style="width: 16px;"></i> Batal
+                        <span>Batal</span>
                     </button>
                     <button type="button" @click="confirmRespond()"
                         :class="respondAction === 'approve' ? 'btn-success' : 'btn-danger'" :disabled="loading">
                         <template x-if="loading"><span class="loading-spinner"></span></template>
-                        <i x-show="!loading" :data-lucide="respondAction === 'approve' ? 'check' : 'slash'"
-                            style="width: 16px;"></i>
                         <span
                             x-text="loading ? 'Memproses...' : (respondAction === 'approve' ? 'Ya, Setujui' : 'Ya, Tolak')"></span>
                     </button>
@@ -1171,7 +1179,18 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            text-align: center;
             transition: all 0.2s;
+        }
+
+        .team-monitoring .respond-modal .rejection-reason-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .team-monitoring .respond-modal .modal-actions button {
+            justify-content: center !important;
+            text-align: center !important;
         }
 
         .btn-secondary {
@@ -2034,6 +2053,326 @@
             border-color: #3B82F6 !important;
             color: #93C5FD !important;
         }
+
+
+        @media (max-width: 768px) {
+            .team-monitoring {
+                width: 100%;
+                min-width: 0;
+                overflow-x: hidden;
+            }
+
+            .team-monitoring .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+                margin-bottom: 20px;
+            }
+
+            .team-monitoring .stat-card {
+                padding: 18px;
+            }
+
+            .team-monitoring .stat-label {
+                font-size: 12px;
+            }
+
+            .team-monitoring .stat-value {
+                font-size: 28px;
+            }
+
+            .team-monitoring .section-header {
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .team-monitoring .section-header h3 {
+                font-size: 1rem;
+            }
+
+            .team-monitoring .pending-card {
+                align-items: stretch;
+                flex-direction: column;
+                padding: 14px;
+            }
+
+            .team-monitoring .pending-card-left {
+                display: flex;
+                justify-content: center;
+            }
+
+            .team-monitoring .team-large-icon {
+                width: 64px;
+                height: 64px;
+            }
+
+            .team-monitoring .pending-card-mid {
+                min-width: 0;
+                text-align: left;
+            }
+
+            .team-monitoring .competition-info,
+            .team-monitoring .submitter-info {
+                flex-wrap: wrap;
+                line-height: 1.45;
+            }
+
+            .team-monitoring .pending-card-right {
+                align-items: stretch;
+                border-left: 0;
+                border-top: 1px solid var(--border-color);
+                flex-direction: column;
+                gap: 12px;
+                padding-left: 0;
+                padding-top: 12px;
+                width: 100%;
+            }
+
+            .team-monitoring .member-count-status {
+                justify-content: center;
+                min-width: 0;
+                width: 100%;
+            }
+
+            .team-monitoring .pending-actions {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                width: 100%;
+            }
+
+            .team-monitoring .pending-actions button {
+                width: 100%;
+                padding-left: 8px;
+                padding-right: 8px;
+                white-space: normal;
+            }
+
+            .team-monitoring .main-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 18px;
+            }
+
+            .team-monitoring .search-wrapper {
+                max-width: none;
+                width: 100%;
+            }
+
+            .team-monitoring .filter-pills {
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                width: 100%;
+                padding-bottom: 4px;
+                scrollbar-width: none;
+            }
+
+            .team-monitoring .filter-pills::-webkit-scrollbar {
+                display: none;
+            }
+
+            .team-monitoring .pill-btn {
+                flex: 0 0 auto;
+                padding: 8px 14px;
+            }
+
+            .team-monitoring .table-container {
+                overflow: visible !important;
+                background: transparent !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+            }
+
+            .team-monitoring .premium-table,
+            .team-monitoring .premium-table tbody,
+            .team-monitoring .premium-table tr,
+            .team-monitoring .premium-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .team-monitoring .premium-table thead {
+                display: none;
+            }
+
+            .team-monitoring .premium-table tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .team-monitoring .premium-table tbody tr {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                padding: 14px;
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+            }
+
+            .team-monitoring .premium-table tbody td {
+                border-bottom: 0;
+                padding: 9px 0;
+                font-size: 13px;
+            }
+
+            .team-monitoring .premium-table tbody td:not(:first-child) {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                border-top: 1px solid var(--border-color);
+                text-align: right;
+            }
+
+            .team-monitoring .premium-table tbody td:not(:first-child)::before {
+                content: '';
+                color: var(--text-muted);
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                text-align: left;
+                flex-shrink: 0;
+            }
+
+            .team-monitoring .premium-table tbody td:nth-child(2)::before { content: 'Kompetisi'; }
+            .team-monitoring .premium-table tbody td:nth-child(3)::before { content: 'Anggota'; }
+            .team-monitoring .premium-table tbody td:nth-child(4)::before { content: 'Status'; }
+            .team-monitoring .premium-table tbody td:nth-child(5)::before { content: 'Aksi'; }
+
+            .team-monitoring .cell-team {
+                align-items: flex-start;
+            }
+
+            .team-monitoring .team-name-text {
+                word-break: break-word;
+            }
+
+            .team-monitoring .cell-members {
+                align-items: flex-end;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .team-monitoring .member-stats {
+                align-items: flex-end;
+            }
+
+            .team-monitoring .cell-actions {
+                justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+
+            .team-monitoring .empty-row {
+                padding: 24px !important;
+                text-align: center !important;
+            }
+
+            .team-monitoring .pagination-footer {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 18px;
+            }
+
+            .team-monitoring .pagination-info {
+                text-align: center;
+            }
+
+            .team-monitoring .pagination-btns,
+            .team-monitoring .page-numbers {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .team-monitoring .requests-view-header,
+            .team-monitoring .header-left {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .team-monitoring .header-titles h2 {
+                font-size: 1.25rem;
+            }
+
+            .team-monitoring .back-btn {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .team-monitoring .requests-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-monitoring .modal-overlay {
+                align-items: flex-end;
+                padding: 12px;
+            }
+
+            .team-monitoring .modal-container {
+                max-height: calc(100vh - 24px);
+                overflow-y: auto;
+                padding: 20px;
+                width: 100%;
+                border-radius: 20px;
+            }
+
+            .team-monitoring .modal-header-premium {
+                align-items: flex-start;
+                padding-right: 32px;
+            }
+
+            .team-monitoring .modal-body-premium .info-grid,
+            .team-monitoring .report-info-row,
+            .team-monitoring .report-photos-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .team-monitoring .leader-profile,
+            .team-monitoring .info-value {
+                align-items: flex-start;
+            }
+
+            .team-monitoring .modal-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .team-monitoring .modal-footer-premium {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .team-monitoring .modal-footer-premium .btn-secondary,
+            .team-monitoring .modal-actions button {
+                width: 100%;
+            }
+
+            .team-monitoring .toast-container {
+                left: 16px;
+                right: 16px;
+                top: calc(var(--topbar-height) + 12px);
+            }
+
+            .team-monitoring .toast {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .team-monitoring .pending-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .team-monitoring .page-nav-btn,
+            .team-monitoring .page-num-btn {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+        }
     </style>
 @endpush
 
@@ -2064,6 +2403,7 @@
                 viewMode: 'dashboard', // 'dashboard' | 'requests'
                 respondType: 'team', // 'team' | 'member'
                 respondAction: 'approve',
+                rejectionReason: '',
 
                 toast: { show: false, message: '', type: 'success', icon: 'check-circle' },
 
@@ -2125,6 +2465,7 @@
                     this.selectedItem = item;
                     this.respondType = type;
                     this.respondAction = action;
+                    this.rejectionReason = '';
                     this.showRespondModal = true;
                 },
 
@@ -2181,7 +2522,8 @@
                         max_member: team.max_member,
                         active_count: team.active_count ?? team.current_member_count ?? 0,
                         pending_count: team.pending_count ?? team.pending_member_count ?? 0,
-                        status: team.status || 'pending'
+                        status: team.status || 'pending',
+                        rejection_reason: team.rejection_reason
                     };
                     this.showDetailModal = true;
                 },
@@ -2242,6 +2584,10 @@
 
                 async confirmRespond() {
                     if (!this.selectedItem || this.loading) return;
+                    if (this.respondAction === 'reject' && !this.rejectionReason.trim()) {
+                        this.showToast('Alasan penolakan wajib diisi.', 'error');
+                        return;
+                    }
                     this.loading = true;
 
                     const id = this.respondType === 'team' ? this.selectedItem.team_id : this.selectedItem.member_id;
@@ -2260,6 +2606,7 @@
                             body: new URLSearchParams({
                                 'action': this.respondAction,
                                 'type': this.respondType,
+                                'rejection_reason': this.respondAction === 'reject' ? this.rejectionReason.trim() : '',
                             }),
                         });
 
@@ -2268,6 +2615,7 @@
                         if (response.ok) {
                             this.showToast(data.message, 'success');
                             this.showRespondModal = false;
+                            this.rejectionReason = '';
 
                             if (this.respondType === 'team') {
                                 // Remove from pendingTeams

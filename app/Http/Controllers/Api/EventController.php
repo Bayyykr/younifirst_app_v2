@@ -8,8 +8,9 @@ use App\Models\EventLike;
 use App\Models\Views\ViewEvent;
 use App\Models\Views\ViewEventLike;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class EventController extends Controller
 {
@@ -25,9 +26,9 @@ class EventController extends Controller
             $q = $request->search;
             $query->where(function ($qb) use ($q) {
                 $qb->where('title', 'like', "%$q%")
-                   ->orWhere('description', 'like', "%$q%")
-                   ->orWhere('location', 'like', "%$q%")
-                   ->orWhere('creator_name', 'like', "%$q%");
+                    ->orWhere('description', 'like', "%$q%")
+                    ->orWhere('location', 'like', "%$q%")
+                    ->orWhere('creator_name', 'like', "%$q%");
             });
         }
 
@@ -43,7 +44,11 @@ class EventController extends Controller
 
         // -- Category filter by name (partial match)
         if ($request->filled('category_name')) {
-            $query->where('category_name', 'like', '%' . $request->category_name . '%');
+            $query->where(
+                'category_name',
+                'like',
+                '%'.$request->category_name.'%',
+            );
         }
 
         // -- Date range filter
@@ -55,23 +60,38 @@ class EventController extends Controller
         }
 
         $perPage = min((int) $request->input('per_page', 15), 100);
-        $sortBy  = in_array($request->input('sort_by'), ['created_at', 'start_date', 'title']) 
-                   ? $request->input('sort_by') : 'created_at';
-        $sortDir = $request->input('sort_dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $sortBy = in_array($request->input('sort_by'), [
+            'created_at',
+            'start_date',
+            'title',
+        ])
+            ? $request->input('sort_by')
+            : 'created_at';
+        $sortDir =
+            $request->input('sort_dir', 'desc') === 'asc' ? 'asc' : 'desc';
 
         $events = $query->orderBy($sortBy, $sortDir)->paginate($perPage);
 
         // Attach is_liked status for the current user
         if ($request->user()) {
-            $userLikedEventIds = EventLike::where('user_id', $request->user()->user_id)
+            $userLikedEventIds = EventLike::where(
+                'user_id',
+                $request->user()->user_id,
+            )
                 ->whereIn('event_id', $events->pluck('event_id'))
                 ->pluck('event_id')
                 ->toArray();
 
-            $events->getCollection()->transform(function ($event) use ($userLikedEventIds) {
-                $event->is_liked = in_array($event->event_id, $userLikedEventIds);
-                return $event;
-            });
+            $events
+                ->getCollection()
+                ->transform(function ($event) use ($userLikedEventIds) {
+                    $event->is_liked = in_array(
+                        $event->event_id,
+                        $userLikedEventIds,
+                    );
+
+                    return $event;
+                });
         }
 
         return response()->json($events);
@@ -83,7 +103,7 @@ class EventController extends Controller
     public function show(string $event_id, Request $request)
     {
         $event = ViewEvent::where('event_id', $event_id)->firstOrFail();
-        
+
         if ($request->user()) {
             $event->is_liked = EventLike::where('event_id', $event_id)
                 ->where('user_id', $request->user()->user_id)
@@ -101,9 +121,9 @@ class EventController extends Controller
     public function likes(string $event_id, Request $request)
     {
         $perPage = min((int) $request->input('per_page', 20), 100);
-        $likes   = ViewEventLike::where('event_id', $event_id)
-                       ->orderBy('liked_at', 'desc')
-                       ->paginate($perPage);
+        $likes = ViewEventLike::where('event_id', $event_id)
+            ->orderBy('liked_at', 'desc')
+            ->paginate($perPage);
 
         return response()->json($likes);
     }
@@ -115,19 +135,20 @@ class EventController extends Controller
     {
         $validated = $request->validate([
             'category_id' => 'required|exists:event_categories,category_id',
-            'title'       => 'required|string|max:50',
+            'title' => 'required|string|max:50',
             'description' => 'required|string',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'location'    => 'required|string|max:255',
-            'poster'      => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
-            'created_by'  => 'required|exists:users,user_id',
-            'status'      => 'nullable|in:pending,upcoming,ongoing,completed,cancelled,rejected',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'location' => 'required|string|max:255',
+            'poster' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            'created_by' => 'required|exists:users,user_id',
+            'status' => 'nullable|in:pending,upcoming,ongoing,completed,cancelled,rejected',
+            'rejection_reason' => 'required_if:status,rejected|nullable|string|max:1000',
         ]);
 
-        $event = new Event();
+        $event = new Event;
         // Generate custom ID: EVT + 7 random characters (total 10)
-        $event->event_id = 'EVT' . strtoupper(Str::random(7));
+        $event->event_id = 'EVT'.strtoupper(Str::random(7));
         $event->fill($request->except('poster'));
 
         if ($request->hasFile('poster')) {
@@ -136,10 +157,17 @@ class EventController extends Controller
         }
 
         $event->status = $request->input('status', 'pending');
-        $event->created_at = \Illuminate\Support\Carbon::now();
+        $event->rejection_reason =
+            $event->status === 'rejected'
+                ? $request->input('rejection_reason')
+                : null;
+        $event->created_at = Carbon::now();
         $event->save();
 
-        return response()->json(['message' => 'Event created successfully', 'data' => $event], 213);
+        return response()->json(
+            ['message' => 'Event created successfully', 'data' => $event],
+            213,
+        );
     }
 
     /**
@@ -151,12 +179,13 @@ class EventController extends Controller
 
         $validatedData = [
             'category_id' => 'sometimes|required|exists:event_categories,category_id',
-            'title'       => 'sometimes|required|string|max:50',
+            'title' => 'sometimes|required|string|max:50',
             'description' => 'sometimes|required|string',
-            'start_date'  => 'sometimes|required|date',
-            'end_date'    => 'sometimes|required|date|after_or_equal:start_date',
-            'location'    => 'sometimes|required|string|max:255',
-            'status'      => 'sometimes|required|in:pending,upcoming,ongoing,completed,cancelled,rejected',
+            'start_date' => 'sometimes|required|date',
+            'end_date' => 'sometimes|required|date|after_or_equal:start_date',
+            'location' => 'sometimes|required|string|max:255',
+            'status' => 'sometimes|required|in:pending,upcoming,ongoing,completed,cancelled,rejected',
+            'rejection_reason' => 'required_if:status,rejected|nullable|string|max:1000',
         ];
 
         // Only validate poster as image if it's a file upload
@@ -170,6 +199,10 @@ class EventController extends Controller
 
         $event->fill($request->except('poster'));
 
+        if ($request->has('status') && $request->status !== 'rejected') {
+            $event->rejection_reason = null;
+        }
+
         if ($request->hasFile('poster')) {
             // Delete old poster if exists
             if ($event->poster) {
@@ -182,7 +215,10 @@ class EventController extends Controller
         $event->updated_at = now();
         $event->save();
 
-        return response()->json(['message' => 'Event updated successfully', 'data' => $event]);
+        return response()->json([
+            'message' => 'Event updated successfully',
+            'data' => $event,
+        ]);
     }
 
     /**
@@ -197,7 +233,9 @@ class EventController extends Controller
         $event->deleted_at = now();
         $event->save();
 
-        return response()->json(['message' => 'Event deleted (soft) successfully']);
+        return response()->json([
+            'message' => 'Event deleted (soft) successfully',
+        ]);
     }
 
     /**
@@ -206,7 +244,7 @@ class EventController extends Controller
     public function toggleLike(string $event_id, Request $request)
     {
         $user = $request->user();
-        
+
         // 1. Verify event exists
         $event = Event::where('event_id', $event_id)->firstOrFail();
 
@@ -222,11 +260,11 @@ class EventController extends Controller
             $isLiked = false;
         } else {
             // LIKE
-            $like = new EventLike();
-            $like->like_id    = (string) Str::uuid();
-            $like->event_id   = $event_id;
-            $like->user_id    = $user->user_id;
-            $like->created_at = \Illuminate\Support\Carbon::now();
+            $like = new EventLike;
+            $like->like_id = (string) Str::uuid();
+            $like->event_id = $event_id;
+            $like->user_id = $user->user_id;
+            $like->created_at = Carbon::now();
             $like->save();
             $status = 'liked';
             $isLiked = true;
@@ -236,10 +274,12 @@ class EventController extends Controller
         $likesCount = EventLike::where('event_id', $event_id)->count();
 
         return response()->json([
-            'message'     => $status === 'liked' ? 'Event liked successfully' : 'Event unliked successfully',
-            'status'      => $status,
+            'message' => $status === 'liked'
+                    ? 'Event liked successfully'
+                    : 'Event unliked successfully',
+            'status' => $status,
             'likes_count' => $likesCount,
-            'is_liked'    => $isLiked
+            'is_liked' => $isLiked,
         ]);
     }
 }

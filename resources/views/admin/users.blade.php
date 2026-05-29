@@ -79,10 +79,6 @@
                     <span>Tambah User</span>
                 </button>
 
-                <button type="button" class="btn-primary" @click="exportData()">
-                    <i data-lucide="download"></i>
-                    <span>Export</span>
-                </button>
             </div>
         </div>
 
@@ -167,6 +163,12 @@
                                             <i data-lucide="unlock" style="width: 18px; height: 18px;"></i>
                                         </button>
                                     </template>
+
+                                    <!-- Delete User -->
+                                    <button class="action-btn text-danger" @click="openDeleteModal(user)"
+                                        title="Hapus Pengguna">
+                                        <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -221,6 +223,12 @@
             </div>
         </div>
 
+        <datalist id="polijeProdiOptions">
+            <template x-for="prodi in prodiOptions" :key="prodi">
+                <option :value="prodi"></option>
+            </template>
+        </datalist>
+
         <!-- Modals -->
         <!-- Add User Modal -->
         <div class="modal-overlay" x-show="showAddModal" x-cloak x-transition>
@@ -247,12 +255,11 @@
                             </div>
                             <div class="form-group">
                                 <label>Program Studi</label>
-                                <select x-model="newUser.prodi">
-                                    <option value="">Pilih Program Studi</option>
-                                    <option value="Teknik Informatika">Teknik Informatika</option>
-                                    <option value="Manajemen Bisnis">Manajemen Bisnis</option>
-                                    <option value="Teknik Komputer">Teknik Komputer</option>
-                                </select>
+                                <div class="prodi-combobox">
+                                    <input type="text" x-model="newUser.prodi" list="polijeProdiOptions"
+                                        placeholder="Ketik atau pilih program studi Polije" autocomplete="off">
+                                </div>
+                                <small class="form-help">Ketik nama prodi, lalu pilih dari daftar yang muncul.</small>
                             </div>
                             <div class="form-group">
                                 <label>Password</label>
@@ -303,12 +310,11 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Program Studi</label>
-                                    <select x-model="editingUser.prodi">
-                                        <option value="">Pilih Program Studi</option>
-                                        <option value="Teknik Informatika">Teknik Informatika</option>
-                                        <option value="Manajemen Bisnis">Manajemen Bisnis</option>
-                                        <option value="Teknik Komputer">Teknik Komputer</option>
-                                    </select>
+                                    <div class="prodi-combobox">
+                                        <input type="text" x-model="editingUser.prodi" list="polijeProdiOptions"
+                                            placeholder="Ketik atau pilih program studi Polije" autocomplete="off">
+                                    </div>
+                                    <small class="form-help">Ketik nama prodi, lalu pilih dari daftar yang muncul.</small>
                                 </div>
                                 <div class="form-group">
                                     <label>Role</label>
@@ -424,6 +430,34 @@
                         <button @click="confirmBlock()" class="btn-primary"
                             style="background: #EF4444; justify-content: center;" :disabled="loading">
                             <span x-show="!loading">Ya, Blokir</span>
+                            <span x-show="loading">Memproses...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal-overlay" x-show="showDeleteModal" x-cloak x-transition>
+            <div class="modal-container glass-panel" style="max-width: 400px; text-align: center;">
+                <div class="modal-body" style="padding: 40px 30px;">
+                    <div
+                        style="width: 64px; height: 64px; background: #FEF2F2; color: #EF4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <i data-lucide="trash-2" style="width: 32px; height: 32px;"></i>
+                    </div>
+                    <h3 style="font-size: 18px; margin-bottom: 12px;">Hapus Pengguna?</h3>
+                    <p style="color: #64748B; font-size: 14px; margin-bottom: 8px;"
+                        x-text="`Apakah Anda yakin ingin menghapus ${selectedUser?.name}?`"></p>
+                    <p style="color: #EF4444; font-size: 12px; font-weight: 600; margin-bottom: 30px;">
+                        Tindakan ini tidak dapat dibatalkan.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <button @click="showDeleteModal = false" class="btn-secondary"
+                            style="justify-content: center;">Batal</button>
+                        <button @click="confirmDelete()" class="btn-primary"
+                            style="background: #EF4444; justify-content: center;" :disabled="loading">
+                            <span x-show="!loading">Ya, Hapus</span>
                             <span x-show="loading">Memproses...</span>
                         </button>
                     </div>
@@ -932,6 +966,45 @@
             color: var(--text-muted);
         }
 
+        .form-help {
+            color: #64748B;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .prodi-combobox {
+            position: relative;
+            width: 100%;
+        }
+
+        .prodi-combobox input {
+            width: 100%;
+            box-sizing: border-box;
+            padding-right: 44px;
+        }
+
+        .prodi-combobox::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 18px;
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid #334155;
+            border-bottom: 2px solid #334155;
+            transform: translateY(-65%) rotate(45deg);
+            pointer-events: none;
+            transition: border-color 0.2s;
+        }
+
+        .prodi-combobox input::-webkit-calendar-picker-indicator {
+            display: none !important;
+        }
+
+        .prodi-combobox:focus-within::after {
+            border-color: var(--primary);
+        }
+
         .form-group input,
         .form-group select {
             padding: 12px 16px;
@@ -1328,6 +1401,18 @@
             color: #94A3B8;
         }
 
+        html.dark .form-help {
+            color: #94A3B8;
+        }
+
+        html.dark .prodi-combobox::after {
+            border-color: #CBD5E1;
+        }
+
+        html.dark .prodi-combobox:focus-within::after {
+            border-color: #F59E0B;
+        }
+
         html.dark .modal-body textarea:focus,
         html.dark .modal-body input:focus,
         html.dark .modal-body select:focus {
@@ -1622,7 +1707,216 @@
             display: none;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
+            .user-management {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .user-management .summary-cards {
+                grid-template-columns: 1fr;
+                gap: 14px;
+                margin-bottom: 20px;
+            }
+
+            .user-management .card {
+                min-height: auto;
+                padding: 18px;
+            }
+
+            .user-management .card-label {
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+
+            .user-management .card-value {
+                font-size: 26px;
+            }
+
+            .user-management .filter-bar {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+                margin-bottom: 20px;
+            }
+
+            .user-management .search-wrapper {
+                width: 100%;
+                max-width: none;
+            }
+
+            .user-management .filter-actions-group {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .user-management .dropdown-wrapper {
+                grid-column: 1 / -1;
+                width: 100%;
+            }
+
+            .user-management .dropdown-btn,
+            .user-management .btn-primary {
+                width: 100%;
+                min-width: 0;
+                justify-content: center;
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .user-management .dropdown-btn {
+                justify-content: space-between;
+            }
+
+            .user-management .dropdown-menu {
+                left: 0;
+                right: 0;
+                width: 100%;
+                min-width: 0;
+            }
+
+            .user-management .table-card {
+                overflow: visible;
+                background: transparent;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .user-management .admin-table,
+            .user-management .admin-table tbody,
+            .user-management .admin-table tr,
+            .user-management .admin-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .user-management .admin-table thead {
+                display: none;
+            }
+
+            .user-management .admin-table tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .user-management .admin-table tbody tr {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                padding: 14px;
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+            }
+
+            .user-management .admin-table tbody td {
+                border-bottom: 0;
+                padding: 9px 0;
+                font-size: 13px;
+            }
+
+            .user-management .admin-table tbody td:not(:first-child) {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .user-management .admin-table tbody td:not(:first-child)::before {
+                content: '';
+                color: var(--text-muted);
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                flex-shrink: 0;
+            }
+
+            .user-management .admin-table tbody td:nth-child(2)::before { content: 'NIM'; }
+            .user-management .admin-table tbody td:nth-child(3)::before { content: 'Program Studi'; }
+            .user-management .admin-table tbody td:nth-child(4)::before { content: 'Bergabung'; }
+            .user-management .admin-table tbody td:nth-child(5)::before { content: 'Status'; }
+            .user-management .admin-table tbody td:nth-child(6)::before { content: 'Action'; }
+
+            .user-management .user-info {
+                align-items: flex-start;
+            }
+
+            .user-management .user-details {
+                min-width: 0;
+            }
+
+            .user-management .user-name,
+            .user-management .user-email {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-break: break-word;
+            }
+
+            .user-management .action-buttons {
+                justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+
+            .user-management .action-btn {
+                width: 34px;
+                height: 34px;
+                padding: 0;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                margin-top: 18px;
+            }
+
+            .pagination-info {
+                text-align: center;
+            }
+
+            .pagination-buttons {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .page-numbers {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px;
+            }
+
+            .modal-overlay {
+                align-items: flex-end;
+                padding: 12px;
+            }
+
+            .modal-container {
+                max-height: calc(100vh - 24px);
+                border-radius: 20px;
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .modal-footer {
+                flex-direction: column-reverse;
+            }
+
+            .modal-footer .btn-primary,
+            .modal-footer .btn-secondary,
+            .modal-footer button {
+                width: 100%;
+                justify-content: center;
+            }
 
             .form-grid,
             .detail-grid {
@@ -1633,11 +1927,15 @@
                 flex-direction: column;
                 text-align: center;
             }
+        }
 
-            .filter-bar {
-                flex-direction: column;
-                gap: 16px;
-                align-items: stretch;
+        @media (max-width: 380px) {
+            .user-management .filter-actions-group {
+                grid-template-columns: 1fr;
+            }
+
+            .user-management .btn-primary span {
+                display: inline;
             }
         }
     </style>
@@ -1657,6 +1955,7 @@
                 showEditModal: false,
                 showSuspendModal: false,
                 showBlockModal: false,
+                showDeleteModal: false,
                 showUnsuspendModal: false,
                 showUnblockModal: false,
                 showDetailModal: false,
@@ -1667,6 +1966,55 @@
                 editingUser: null,
 
                 newUser: { name: '', email: '', nim: '', prodi: '', password: '', role: 'user' },
+
+                prodiOptions: [
+                    'Agribisnis',
+                    'Agribisnis-Kampus Bondowoso',
+                    'Agribisnis-Kampus Nganjuk',
+                    'Agribisnis-Kampus Ngawi',
+                    'Agribisnis-Kampus Sidoarjo',
+                    'Akuntansi Sektor Publik',
+                    'Bahasa Inggris',
+                    'Bisnis Digital-Kampus Bondowoso',
+                    'Budidaya Tanaman Perkebunan',
+                    'Destinasi Pariwisata',
+                    'Gizi Klinik',
+                    'Keteknikan Pertanian',
+                    'Manajemen Agribisnis',
+                    'Manajemen Agribisnis-Kampus Bondowoso',
+                    'Manajemen Agroindustri',
+                    'Manajemen Bisnis Unggas',
+                    'Manajemen Informatika',
+                    'Manajemen Informatika-Kelas Internasional',
+                    'Manajemen Informasi Kesehatan',
+                    'Manajemen Pemasaran Internasional',
+                    'Mesin Otomotif',
+                    'Pengelolaan Perkebunan Kopi',
+                    'Produksi Media-Kampus Bondowoso',
+                    'Produksi Tanaman Hortikultura',
+                    'Produksi Tanaman Perkebunan',
+                    'Produksi Ternak',
+                    'Promosi Kesehatan',
+                    'PSDKU-Manajemen Agribisnis-Kab. Nganjuk',
+                    'PSDKU-Manajemen Agribisnis-Kab. Ngawi',
+                    'PSDKU-Manajemen Agroindustri-Kab. Sidoarjo',
+                    'PSDKU-Manajemen Informasi Kesehatan-Kab. Ngawi',
+                    'PSDKU-Teknik Informatika-Kab. Nganjuk',
+                    'PSDKU-Teknik Informatika-Kab. Sidoarjo',
+                    'Teknik Energi Terbarukan',
+                    'Teknik Informatika',
+                    'Teknik Informatika-Kelas Internasional',
+                    'Teknik Komputer',
+                    'Teknik Komputer-Program Kerjasama WXUT',
+                    'Teknik Produksi Benih',
+                    'Teknologi Industri Pangan',
+                    'Teknologi Pakan Ternak',
+                    'Teknologi Produksi Tanaman Pangan',
+                    'Teknologi Rekayasa Komputer',
+                    'Teknologi Rekayasa Mekatronika',
+                    'Teknologi Rekayasa Pangan',
+                    'Teknologi Rekayasa Pengemasan',
+                ],
 
                 // Suspend Modal State
                 suspendDuration: '7',
@@ -1735,6 +2083,12 @@
                 openBlockModal(user) {
                     this.selectedUser = user;
                     this.showBlockModal = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                openDeleteModal(user) {
+                    this.selectedUser = user;
+                    this.showDeleteModal = true;
                     this.$nextTick(() => lucide.createIcons());
                 },
 
@@ -1862,6 +2216,33 @@
                     finally { this.loading = false; }
                 },
 
+                async confirmDelete() {
+                    if (!this.selectedUser) return;
+
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`/admin/users/${this.selectedUser.user_id}`, {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+                        });
+                        const result = await response.json().catch(() => ({}));
+                        if (response.ok) {
+                            this.allUsers = this.allUsers.filter(u => (u.user_id || u.id) !== this.selectedUser.user_id);
+                            if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
+                            this.showDeleteModal = false;
+                            this.showToast('Pengguna berhasil dihapus', 'success');
+                            this.selectedUser = null;
+                            this.$nextTick(() => lucide.createIcons());
+                        } else {
+                            this.showToast(result.message || 'Gagal menghapus pengguna', 'error');
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        this.showToast('Terjadi kesalahan sistem', 'error');
+                    }
+                    finally { this.loading = false; }
+                },
+
                 async addUser() {
                     this.loading = true;
                     try {
@@ -1882,11 +2263,6 @@
                         this.showToast('Terjadi kesalahan sistem', 'error');
                     }
                     finally { this.loading = false; }
-                },
-
-                exportData() {
-                    let url = `/admin/users/export-pdf?search=${encodeURIComponent(this.search)}&status=${encodeURIComponent(this.status)}`;
-                    window.open(url, '_blank');
                 }
             }));
         });

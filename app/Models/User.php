@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -13,14 +13,30 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $primaryKey = 'user_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'firebase_uid', 'name', 'email', 'password', 'role',
-        'nim', 'prodi', 'photo', 'status', 'fcm_token', 'created_at',
-        'notify_email', 'notify_event', 'notify_team', 'notify_lostfound',
+        'user_id',
+        'firebase_uid',
+        'name',
+        'email',
+        'password',
+        'role',
+        'nim',
+        'prodi',
+        'photo',
+        'status',
+        'fcm_token',
+        'created_at',
+        'notify_email',
+        'notify_event',
+        'notify_team',
+        'notify_lostfound',
     ];
 
     protected $hidden = ['password'];
@@ -42,11 +58,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(TeamMember::class, 'user_id', 'user_id');
     }
-    
+
     public function teams()
     {
-        return $this->belongsToMany(Team::class, 'team_members', 'user_id', 'team_id')
-                    ->withPivot('role', 'status');
+        return $this->belongsToMany(
+            Team::class,
+            'team_members',
+            'user_id',
+            'team_id',
+        )->withPivot('role', 'status', 'rejection_reason');
     }
 
     public function events()
@@ -71,13 +91,22 @@ class User extends Authenticatable
 
     public function getActiveSuspensionAttribute()
     {
-        if ($this->status !== 'suspended') return null;
+        if ($this->status !== 'suspended') {
+            return null;
+        }
+
         return $this->suspensions()->latest()->first();
     }
 
     public function getPhotoUrlAttribute()
     {
-        return $this->photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->photo) : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=3B82F6&color=fff';
+        return $this->photo
+            ? Storage::disk('public')->url(
+                $this->photo,
+            )
+            : 'https://ui-avatars.com/api/?name='.
+                    urlencode($this->name).
+                    '&background=3B82F6&color=fff';
     }
 
     protected $appends = ['active_suspension', 'photo_url'];

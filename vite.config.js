@@ -1,25 +1,28 @@
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
+import { defineConfig } from "vite";
+import laravel from "laravel-vite-plugin";
 
 export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/app.css', 
-                'resources/js/app.js', 
-                'resources/css/auth.css', 
-                'resources/css/admin.css',
-                'resources/css/settings.css'
+                "resources/css/app.css",
+                "resources/js/app.js",
+                "resources/css/auth.css",
+                "resources/css/admin.css",
+                "resources/css/settings.css",
             ],
             refresh: true,
         }),
     ],
     server: {
         watch: {
-            ignored: ['**/storage/framework/views/**'],
+            ignored: ["**/storage/framework/views/**"],
         },
         host: true,
         strictPort: true,
-        allowedHosts: ['.ngrok-free.app', 'unelusive-lylah-goodheartedly.ngrok-free.dev'],
+        allowedHosts: [
+            ".ngrok-free.app",
+            "crumpet-buddhism-regulate.ngrok-free.dev",
+        ],
     },
 });

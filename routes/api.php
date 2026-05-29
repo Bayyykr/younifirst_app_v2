@@ -86,9 +86,6 @@ Route::middleware("auth:sanctum")->group(function () {
         ->group(function () {
             Route::get("/", "index");
             Route::get("/{announcement_id}", "show");
-            Route::post("/add", "store");
-            Route::put("/{announcement_id}", "update");
-            Route::delete("/{announcement_id}", "destroy");
         });
 
     // ── LOST & FOUND ─────────────────────────────────────────

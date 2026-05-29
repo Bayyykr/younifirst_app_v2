@@ -468,9 +468,105 @@
     }
 
     @media (max-width: 768px) {
-        .stats-grid { grid-template-columns: 1fr; }
-        .bottom-grid { grid-template-columns: 1fr; }
+        .dashboard-wrapper {
+            width: 100%;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .dashboard-wrapper .stats-grid,
+        .charts-main-grid,
+        .bottom-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .dashboard-wrapper .stat-card,
+        .chart-container,
+        .activity-container,
+        .announcements-card {
+            width: 100%;
+            min-width: 0;
+            padding: 18px;
+        }
+
+        .dashboard-wrapper .stat-card {
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 14px;
+            text-align: left;
+        }
+
+        .dashboard-wrapper .stat-content {
+            align-items: flex-start;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .dashboard-wrapper .stat-label,
+        .dashboard-wrapper .stat-trend {
+            line-height: 1.25;
+            text-align: left;
+        }
+
+        .alert-bar {
+            padding: 14px 16px;
+        }
+
+        .alert-content {
+            align-items: flex-start;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
         .activity-container { grid-column: span 1; }
+
+        .announcements-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #growthChart,
+        #categoryChart,
+        #teamStatusChart,
+        #lostFoundStatusChart {
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .dashboard-wrapper .stat-card {
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .dashboard-wrapper .stat-icon-wrapper {
+            width: 42px;
+            height: 42px;
+        }
+
+        .dashboard-wrapper .stat-value {
+            font-size: 22px;
+        }
+
+        .dashboard-wrapper .stat-label {
+            font-size: 12px;
+        }
+
+        .dashboard-wrapper .stat-trend {
+            font-size: 11px;
+        }
+
+        .chart-container,
+        .activity-container,
+        .announcements-card {
+            padding: 16px;
+        }
     }
 </style>
 @endpush

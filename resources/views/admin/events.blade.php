@@ -111,21 +111,13 @@
                                 <i data-lucide="check" x-show="statusFilter === 'all'"></i>
                             </div>
                             <div class="dropdown-divider"></div>
-                            <div class="dropdown-item" @click="statusFilter = 'upcoming'; open = false">
-                                Upcoming
-                                <i data-lucide="check" x-show="statusFilter === 'upcoming'"></i>
-                            </div>
-                            <div class="dropdown-item" @click="statusFilter = 'ongoing'; open = false">
-                                Ongoing
-                                <i data-lucide="check" x-show="statusFilter === 'ongoing'"></i>
+                            <div class="dropdown-item" @click="statusFilter = 'approved'; open = false">
+                                Approved
+                                <i data-lucide="check" x-show="statusFilter === 'approved'"></i>
                             </div>
                             <div class="dropdown-item" @click="statusFilter = 'pending'; open = false">
                                 Pending
                                 <i data-lucide="check" x-show="statusFilter === 'pending'"></i>
-                            </div>
-                            <div class="dropdown-item" @click="statusFilter = 'completed'; open = false">
-                                Completed
-                                <i data-lucide="check" x-show="statusFilter === 'completed'"></i>
                             </div>
                             <div class="dropdown-item" @click="statusFilter = 'rejected'; open = false">
                                 Rejected
@@ -160,7 +152,6 @@
                             <th>Tanggal Mulai</th>
                             <th>Tanggal Selesai</th>
                             <th>Dibuat oleh</th>
-                            <th class="text-center">Suka</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -198,7 +189,6 @@
                                     </div>
                                 </td>
                                 <td x-text="eventItem.creator_name"></td>
-                                <td class="text-center" x-text="eventItem.likes_count"></td>
                                 <td>
                                     <span :class="getStatusBadgeClass(eventItem.status)"
                                         x-text="getStatusLabel(eventItem.status)"></span>
@@ -348,7 +338,7 @@
                                     </button>
                                     <button class="req-btn-reject"
                                         @click="openRespondModal('{{ $event->event_id }}', '{{ addslashes($event->title) }}', 'reject')">
-                                        <i data-lucide="slash" style="width: 18px;"></i> Tolak
+                                        <i data-lucide="x" style="width: 18px;"></i> Tolak
                                     </button>
                                 </div>
                             </div>
@@ -436,20 +426,24 @@
             <div class="modal-container respond-confirm-modal" @click.away="showRespondModal = false"
                 x-transition:enter="modal-slide-in">
                 <div class="respond-icon-circle respond-reject-circle">
-                    <i data-lucide="slash"></i>
+                    <i data-lucide="x"></i>
                 </div>
                 <h3>Tolak Event?</h3>
                 <p>Event <strong x-text="respondEventTitle"></strong> akan ditolak dan pembuat event akan mendapatkan
                     notifikasi.</p>
+                <div class="form-group rejection-reason-group">
+                    <label>Alasan Penolakan<span>*</span></label>
+                    <textarea x-model="rejectionReason" rows="4" maxlength="1000"
+                        placeholder="Jelaskan alasan event ditolak agar pembuat dapat memperbaikinya."></textarea>
+                </div>
                 <div class="delete-modal-actions">
                     <button @click="showRespondModal = false" class="btn btn-secondary-gray" :disabled="respondLoading">
-                        <i data-lucide="x" style="width: 16px;"></i> Batal
+                        <span>Batal</span>
                     </button>
                     <button @click="confirmRespond()" class="btn btn-danger-solid" :disabled="respondLoading">
                         <template x-if="respondLoading">
                             <span class="loading-spinner"></span>
                         </template>
-                        <i x-show="!respondLoading" data-lucide="slash" style="width: 16px;"></i>
                         <span x-text="respondLoading ? 'Menolak...' : 'Ya, Tolak'"></span>
                     </button>
                 </div>
@@ -589,6 +583,11 @@
                                     x-text="isEditMode ? selectedEvent?.description : ''" :readonly="isViewOnly"
                                     required></textarea>
                             </div>
+
+                            <div class="form-group" x-show="isViewOnly && selectedEvent?.status === 'rejected' && selectedEvent?.rejection_reason">
+                                <label>Alasan Penolakan</label>
+                                <textarea x-text="selectedEvent?.rejection_reason" readonly></textarea>
+                            </div>
                         </div>
                     </div>
 
@@ -661,6 +660,18 @@
         .modal-slide-in-enter-to {
             opacity: 1;
             transform: scale(1);
+        }
+
+        .event-management {
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: hidden;
+        }
+
+        .event-management *,
+        .event-management *::before,
+        .event-management *::after {
+            box-sizing: border-box;
         }
 
         /* Layout & Cards */
@@ -768,8 +779,41 @@
 
         .premium-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
             background: transparent !important;
+        }
+
+        .event-management .premium-table th:nth-child(1),
+        .event-management .premium-table td:nth-child(1) {
+            width: 30%;
+        }
+
+        .event-management .premium-table th:nth-child(2),
+        .event-management .premium-table td:nth-child(2) {
+            width: 11%;
+        }
+
+        .event-management .premium-table th:nth-child(3),
+        .event-management .premium-table td:nth-child(3),
+        .event-management .premium-table th:nth-child(4),
+        .event-management .premium-table td:nth-child(4) {
+            width: 11%;
+        }
+
+        .event-management .premium-table th:nth-child(5),
+        .event-management .premium-table td:nth-child(5) {
+            width: 11%;
+        }
+
+        .event-management .premium-table th:nth-child(6),
+        .event-management .premium-table td:nth-child(6) {
+            width: 11%;
+        }
+
+        .event-management .premium-table th:nth-child(7),
+        .event-management .premium-table td:nth-child(7) {
+            width: 15%;
         }
 
         .premium-table th {
@@ -790,6 +834,8 @@
             background: transparent;
             color: var(--text-main);
             vertical-align: middle;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .premium-table tbody tr {
@@ -914,6 +960,9 @@
             padding: 12px 16px;
             gap: 15px;
             align-items: center;
+            max-width: 100%;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .pending-poster {
@@ -941,7 +990,8 @@
         }
 
         .pending-card-mid {
-            flex-grow: 1;
+            flex: 1 1 auto;
+            min-width: 0;
         }
 
         .info-badges {
@@ -973,11 +1023,13 @@
             color: var(--text-main);
             font-weight: 700;
             margin-bottom: 4px;
+            overflow-wrap: anywhere;
         }
 
         .event-meta {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 8px;
             color: #64748B;
             font-size: 0.8rem;
@@ -996,15 +1048,16 @@
 
         .pending-card-right {
             display: flex;
-            flex-direction: column;
-            gap: 6px;
-            min-width: 130px;
+            flex: 0 0 auto;
+            flex-direction: row;
+            gap: 8px;
+            min-width: 0;
         }
 
         .pending-card-right .btn {
             background: var(--bg-white);
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 0;
+            border-radius: 8px;
             font-size: 0.8rem;
             font-weight: 600;
             display: flex;
@@ -1015,6 +1068,9 @@
             cursor: pointer;
             transition: all 0.2s;
             color: var(--text-main);
+            flex: 0 0 38px;
+            width: 38px;
+            height: 38px;
         }
 
         .btn-action-outline {
@@ -1053,10 +1109,14 @@
         /* Action Icon Buttons in Table */
         .cell-actions {
             display: flex;
+            flex-wrap: nowrap;
             gap: 8px;
+            justify-content: flex-start;
+            min-width: max-content;
         }
 
         .action-icon-btn {
+            flex: 0 0 34px;
             width: 34px;
             height: 34px;
             display: flex;
@@ -1162,6 +1222,17 @@
             gap: 12px;
             flex: 1;
             min-width: 0;
+        }
+
+        .event-management .cell-event,
+        .event-management .cell-titles {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .event-management .main-title,
+        .event-management .sub-title {
+            max-width: 100%;
         }
 
         .event-management .search-wrapper {
@@ -1302,16 +1373,99 @@
             white-space: nowrap;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 1180px) {
+            .event-management .pending-card {
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .event-management .pending-card-right {
+                justify-content: flex-end;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .event-management {
+                width: 100%;
+                min-width: 0;
+                overflow-x: hidden;
+            }
+
+            .event-management .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+                margin-bottom: 20px;
+            }
+
+            .event-management .stat-card {
+                padding: 18px;
+            }
+
+            .event-management .stat-label {
+                font-size: 12px;
+            }
+
+            .event-management .stat-value {
+                font-size: 28px;
+            }
+
+            .pending-section .section-header {
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .pending-section .section-header h3 {
+                font-size: 1rem;
+            }
+
+            .event-management .pending-card {
+                align-items: stretch;
+                flex-direction: column;
+                padding: 14px;
+            }
+
+            .event-management .pending-card-left,
+            .event-management .pending-poster {
+                width: 100%;
+            }
+
+            .event-management .pending-poster {
+                height: 150px;
+            }
+
+            .event-management .info-badges,
+            .event-management .event-meta {
+                flex-wrap: wrap;
+            }
+
+            .event-management .event-meta {
+                align-items: flex-start;
+                line-height: 1.45;
+            }
+
+            .event-management .pending-card-right {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                min-width: 0;
+                width: 100%;
+            }
+
+            .event-management .pending-card-right .btn {
+                width: 100%;
+            }
+
             .event-management .main-toolbar {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 16px;
+                gap: 12px;
+                margin-bottom: 20px;
             }
 
             .event-management .toolbar-left {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 10px;
             }
 
             .event-management .search-wrapper {
@@ -1323,10 +1477,254 @@
             .event-management .dropdown-btn,
             .event-management .main-toolbar .btn-primary-blue {
                 width: 100%;
+                min-width: 0;
+            }
+
+            .event-management .dropdown-btn {
+                justify-content: space-between;
             }
 
             .event-management .dropdown-menu {
                 width: 100%;
+                min-width: 0;
+            }
+
+            .event-management .category-filter-bar {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .event-management .filter-pills {
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                width: 100%;
+                padding-bottom: 4px;
+                scrollbar-width: none;
+            }
+
+            .event-management .filter-pills::-webkit-scrollbar {
+                display: none;
+            }
+
+            .event-management .pill-btn {
+                flex: 0 0 auto;
+                padding: 8px 14px;
+            }
+
+            .event-management .table-container {
+                overflow: visible;
+                background: transparent !important;
+                border: 0 !important;
+                border-radius: 0;
+            }
+
+            .event-management .premium-table,
+            .event-management .premium-table tbody,
+            .event-management .premium-table tr,
+            .event-management .premium-table td {
+                display: block;
+                width: 100% !important;
+            }
+
+            .event-management .premium-table thead {
+                display: none;
+            }
+
+            .event-management .premium-table tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .event-management .premium-table tbody tr {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                padding: 14px;
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+            }
+
+            .event-management .premium-table tbody td {
+                border-bottom: 0;
+                padding: 9px 0;
+                font-size: 13px;
+            }
+
+            .event-management .premium-table tbody td:not(:first-child) {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                border-top: 1px solid var(--border-color);
+                text-align: right;
+            }
+
+            .event-management .premium-table tbody td:not(:first-child)::before {
+                content: '';
+                color: var(--text-muted);
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                text-align: left;
+                flex-shrink: 0;
+            }
+
+            .event-management .premium-table tbody td:nth-child(2)::before { content: 'Kategori'; }
+            .event-management .premium-table tbody td:nth-child(3)::before { content: 'Mulai'; }
+            .event-management .premium-table tbody td:nth-child(4)::before { content: 'Selesai'; }
+            .event-management .premium-table tbody td:nth-child(5)::before { content: 'Dibuat oleh'; }
+            .event-management .premium-table tbody td:nth-child(6)::before { content: 'Status'; }
+            .event-management .premium-table tbody td:nth-child(7)::before { content: 'Aksi'; }
+
+            .event-management .cell-event {
+                align-items: flex-start;
+            }
+
+            .event-management .cell-titles {
+                min-width: 0;
+            }
+
+            .event-management .main-title,
+            .event-management .sub-title {
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .event-management .cell-actions {
+                justify-content: flex-end;
+            }
+
+            .event-management .pagination-footer {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 18px;
+            }
+
+            .event-management .pagination-info {
+                text-align: center;
+            }
+
+            .event-management .pagination-btns {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .event-management .requests-view-header,
+            .event-management .header-content-left {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .event-management .header-title-group h2 {
+                font-size: 1.25rem;
+            }
+
+            .event-management .header-stats-badges {
+                flex-wrap: wrap;
+            }
+
+            .event-management .header-content-right,
+            .event-management .search-mini {
+                width: 100%;
+            }
+
+            .event-management .requests-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .event-management .req-card-main {
+                flex-direction: column;
+            }
+
+            .event-management .req-poster-wrap {
+                width: 100%;
+                height: 170px;
+            }
+
+            .event-management .req-card-body {
+                padding: 16px;
+            }
+
+            .event-management .req-details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .event-management .req-card-actions,
+            .event-management .req-decision-btns {
+                align-items: stretch;
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .event-management .req-btn-secondary,
+            .event-management .req-btn-approve,
+            .event-management .req-btn-reject {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .event-management .modal-overlay {
+                align-items: flex-end;
+                padding: 12px;
+            }
+
+            .event-management .modal-container {
+                width: 100%;
+                max-height: calc(100vh - 24px);
+                border-radius: 20px;
+            }
+
+            .event-management .modal-layout,
+            .event-management .form-row-grid {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+            }
+
+            .event-management .modal-left {
+                border-right: 0;
+                border-bottom: 1px solid var(--border-color);
+                padding: 18px;
+            }
+
+            .event-management .modal-right {
+                padding: 18px;
+            }
+
+            .event-management .poster-preview-area {
+                max-width: 220px;
+                margin: 0 auto;
+            }
+
+            .event-management .modal-footer-actions,
+            .event-management .delete-modal-actions {
+                display: flex;
+                flex-direction: column-reverse;
+                gap: 10px;
+                padding: 18px !important;
+            }
+
+            .event-management .modal-footer-actions button,
+            .event-management .delete-modal-actions button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .event-management .pending-card-right {
+                grid-template-columns: 1fr;
+            }
+
+            .event-management .page-nav-btn,
+            .event-management .page-num-btn {
+                padding: 0 0.75rem;
             }
         }
 
@@ -1543,6 +1941,28 @@
         html.dark .event-management .respond-confirm-modal p {
             color: #CBD5E1 !important;
         }
+
+        .event-management .respond-confirm-modal .rejection-reason-group {
+            margin-bottom: 0 !important;
+            padding-bottom: 24px !important;
+            text-align: left;
+        }
+
+        .event-management .respond-confirm-modal .rejection-reason-group textarea {
+            display: block;
+            width: 100%;
+        }
+
+        .event-management .respond-confirm-modal .rejection-reason-group + .delete-modal-actions {
+            margin-top: 0 !important;
+        }
+
+        .event-management .respond-confirm-modal .delete-modal-actions button {
+            align-items: center !important;
+            display: flex !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
     </style>
 @endpush
 
@@ -1570,6 +1990,7 @@
                 respondEventId: null,
                 respondEventTitle: '',
                 respondAction: 'approve', // 'approve' | 'reject'
+                rejectionReason: '',
                 respondLoading: false,
                 toast: { show: false, message: '', type: 'success', icon: 'check-circle' },
 
@@ -1642,6 +2063,7 @@
                     this.respondEventId = eventId;
                     this.respondEventTitle = eventTitle;
                     this.respondAction = action;
+                    this.rejectionReason = '';
                     this.respondLoading = false;
                     this.showRespondModal = true;
                     this.$nextTick(() => this.reinitIcons());
@@ -1649,6 +2071,10 @@
 
                 async confirmRespond() {
                     if (!this.respondEventId || this.respondLoading) return;
+                    if (this.respondAction === 'reject' && !this.rejectionReason.trim()) {
+                        this.showToast('Alasan penolakan wajib diisi.', 'error');
+                        return;
+                    }
                     this.respondLoading = true;
 
                     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -1666,6 +2092,7 @@
                             body: new URLSearchParams({
                                 '_token': csrfToken,
                                 'action': this.respondAction,
+                                'rejection_reason': this.respondAction === 'reject' ? this.rejectionReason.trim() : '',
                             }),
                         });
 
@@ -1675,6 +2102,7 @@
                             const eventIndex = this.allEvents.findIndex(e => e.id === this.respondEventId);
                             if (eventIndex !== -1) {
                                 this.allEvents[eventIndex].status = newStatus;
+                                this.allEvents[eventIndex].rejection_reason = this.respondAction === 'reject' ? this.rejectionReason.trim() : null;
                             }
 
                             const msg = this.respondAction === 'approve'
@@ -1683,6 +2111,7 @@
                             const type = 'success';
 
                             this.showRespondModal = false;
+                            this.rejectionReason = '';
                             this.respondLoading = false;
                             this.showToast(msg, type);
 
@@ -1765,7 +2194,9 @@
                             (e.location && e.location.toLowerCase().includes(s)) ||
                             (e.creator_name && e.creator_name.toLowerCase().includes(s));
 
-                        let matchesStatus = st === 'all' || e.status === st;
+                        let matchesStatus = st === 'all' ||
+                            (st === 'approved' && ['upcoming', 'ongoing', 'completed'].includes(e.status)) ||
+                            e.status === st;
                         let matchesCat = cat === 'all' || e.category_id == cat;
 
                         return matchesSearch && matchesStatus && matchesCat;
@@ -1799,10 +2230,8 @@
                 getStatusFilterLabel(status) {
                     const labels = {
                         all: 'Semua Status',
-                        upcoming: 'Upcoming',
-                        ongoing: 'Ongoing',
+                        approved: 'Approved',
                         pending: 'Pending',
-                        completed: 'Completed',
                         rejected: 'Rejected'
                     };
                     return labels[status] || this.capitalize(status);

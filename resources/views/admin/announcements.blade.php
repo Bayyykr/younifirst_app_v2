@@ -158,7 +158,7 @@
                 </div>
 
                 <form :action="isEdit ? `/admin/announcement/${selectedId}` : '{{ route('admin.announcement.store') }}'"
-                    method="POST" enctype="multipart/form-data" class="announcement-form">
+                    method="POST" enctype="multipart/form-data" class="announcement-form" @submit="validateFileBeforeSubmit($event)">
                     @csrf
                     <template x-if="isEdit">
                         <input type="hidden" name="_method" value="PUT">
@@ -199,7 +199,7 @@
                             <input type="file" name="file" x-ref="fileInput" @change="handleFileSelect($event)"
                                 accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
 
-                            <div class="file-upload-box" @click="$refs.fileInput.click()">
+                            <div class="file-upload-box" :class="{ 'has-error': fileError }" @click="$refs.fileInput.click()">
                                 <div class="file-upload-icon">
                                     <i data-lucide="upload-cloud"></i>
                                 </div>
@@ -209,6 +209,14 @@
                                 </div>
                                 <button type="button" class="file-browse-btn">Browse</button>
                             </div>
+
+                            <template x-if="fileError">
+                                <p class="file-error-message" x-text="fileError"></p>
+                            </template>
+
+                            @error('file')
+                                <p class="file-error-message">{{ $message }}</p>
+                            @enderror
 
                             <template x-if="isEdit && formData.file_url && !selectedFileName">
                                 <div class="current-file-info">
@@ -222,7 +230,8 @@
 
                     <div class="announcement-form-actions">
                         <button type="button" @click="showFormModal = false" class="btn-modal-secondary">Batal</button>
-                        <button type="submit" class="btn-modal-primary" x-text="isEdit ? 'Perbarui' : 'Simpan'"></button>
+                        <button type="submit" class="btn-modal-primary" :disabled="!!fileError"
+                            x-text="isEdit ? 'Perbarui' : 'Simpan'"></button>
                     </div>
                 </form>
             </div>
@@ -352,6 +361,21 @@
         </div>
 
         <!-- Toast Notification -->
+        @if($errors->any())
+            <div class="toast-wrapper" x-data="{ show: true }" x-show="show"
+                x-init="setTimeout(() => show = false, 5000); $nextTick(() => lucide.createIcons())" x-cloak
+                x-transition:enter="toast-enter" x-transition:leave="toast-leave">
+                <div class="toast-box toast-error">
+                    <div class="toast-icon">
+                        <i data-lucide="alert-circle"></i>
+                    </div>
+                    <div class="toast-content">
+                        <p>{{ $errors->first() }}</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if(session('success'))
             <div class="toast-wrapper" x-data="{ show: true }" x-show="show"
                 x-init="setTimeout(() => show = false, 3000); $nextTick(() => lucide.createIcons())" x-cloak
@@ -601,6 +625,12 @@
         .btn-modal-primary:hover {
             background: #2563EB;
             transform: translateY(-1px);
+        }
+
+        .btn-modal-primary:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Toast Notifications */
@@ -894,6 +924,9 @@
 
         /* Custom File Upload Styles */
         .file-upload-wrapper {
+            align-items: flex-start;
+            display: flex;
+            flex-direction: column;
             width: 100%;
         }
 
@@ -907,11 +940,27 @@
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s;
+            width: 100%;
         }
 
         .file-upload-box:hover {
             background: var(--bg-hover);
             border-color: #3B82F6;
+        }
+
+        .file-upload-box.has-error {
+            background: #FEF2F2;
+            border-color: #EF4444;
+        }
+
+        .file-error-message {
+            display: block;
+            width: 100%;
+            margin: 8px 0 0;
+            color: #EF4444;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.5;
         }
 
         .file-upload-icon {
@@ -991,6 +1040,8 @@
                 selectedId: null,
                 selectedTitle: '',
                 selectedFileName: '',
+                fileError: '',
+                maxFileSize: 5 * 1024 * 1024,
 
                 formData: {
                     title: '',
@@ -1017,7 +1068,11 @@
                     this.selectedId = null;
                     this.formData = { title: '', content: '', status: 'publish', publish_at: '', publish_at_text: '-', is_scheduled: false, file_url: null, creator_name: '', date: '' };
                     this.selectedFileName = '';
+                    this.fileError = '';
                     this.showFormModal = true;
+                    this.$nextTick(() => {
+                        if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+                    });
                 },
 
                 openDetailModal(ann) {
@@ -1049,7 +1104,11 @@
                         file_url: ann.file_url
                     };
                     this.selectedFileName = '';
+                    this.fileError = '';
                     this.showFormModal = true;
+                    this.$nextTick(() => {
+                        if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+                    });
                 },
 
                 isScheduled(ann) {
@@ -1058,8 +1117,33 @@
 
                 handleFileSelect(event) {
                     const file = event.target.files[0];
-                    if (file) {
-                        this.selectedFileName = file.name;
+                    this.fileError = '';
+                    this.selectedFileName = '';
+
+                    if (!file) return;
+
+                    if (file.size > this.maxFileSize) {
+                        this.fileError = 'Ukuran file lampiran maksimal 5MB. Silakan pilih file yang lebih kecil.';
+                        event.target.value = '';
+                        return;
+                    }
+
+                    this.selectedFileName = file.name;
+                },
+
+                validateFileBeforeSubmit(event) {
+                    const file = this.$refs.fileInput?.files?.[0];
+
+                    if (this.fileError) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    if (file && file.size > this.maxFileSize) {
+                        event.preventDefault();
+                        this.fileError = 'Ukuran file lampiran maksimal 5MB. File tidak dapat diunggah.';
+                        this.$refs.fileInput.value = '';
+                        this.selectedFileName = '';
                     }
                 },
 

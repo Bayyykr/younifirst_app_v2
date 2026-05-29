@@ -98,8 +98,13 @@
 @endphp
 
 <header class="topbar" style="overflow: visible !important;">
-    <div class="page-title">
-        @yield('page_title', 'Dashboard')
+    <div class="topbar-left">
+        <button type="button" class="mobile-menu-btn" @click="sidebarOpen = true" aria-label="Buka sidebar">
+            <i data-lucide="menu"></i>
+        </button>
+        <div class="page-title">
+            @yield('page_title', 'Dashboard')
+        </div>
     </div>
 
     <div class="topbar-right" style="display: flex !important; align-items: center !important; gap: 20px !important;">

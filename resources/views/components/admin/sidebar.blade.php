@@ -1,4 +1,4 @@
-<aside class="sidebar" :class="{ 'collapsed': collapsed }">
+<aside class="sidebar" :class="{ 'collapsed': collapsed && !isMobile(), 'open': sidebarOpen }">
     <div class="sidebar-header">
         <div class="logo-section" x-show="!collapsed" x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 transform -translate-x-4"
@@ -6,8 +6,8 @@
             <img src="{{ asset('images/logo.png') }}" alt="Younifirst Logo">
             <span>Younifirst</span>
         </div>
-        <button class="collapse-btn" @click="collapsed = !collapsed"
-            :title="collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
+        <button class="collapse-btn" @click="isMobile() ? sidebarOpen = false : collapsed = !collapsed"
+            :title="isMobile() ? 'Tutup Sidebar' : (collapsed ? 'Expand Sidebar' : 'Collapse Sidebar')">
             <i data-lucide="menu"></i>
         </button>
     </div>
@@ -52,7 +52,7 @@
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">Announcement</span>
         </a>
-        
+
         <a href="{{ route('admin.reports') }}" class="nav-item {{ request()->routeIs('admin.reports') ? 'active' : '' }}">
             <i data-lucide="file-text"></i>
             <span x-show="!collapsed" x-transition:enter="transition ease-out duration-200"

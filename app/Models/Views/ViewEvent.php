@@ -2,7 +2,9 @@
 
 namespace App\Models\Views;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Read-only model untuk view_events.
@@ -11,9 +13,13 @@ use Illuminate\Database\Eloquent\Model;
 class ViewEvent extends Model
 {
     protected $table = 'view_events';
+
     protected $primaryKey = 'event_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $guarded = ['*'];
@@ -21,19 +27,24 @@ class ViewEvent extends Model
     protected $appends = ['poster_url'];
 
     protected $casts = [
-        'start_date'  => 'datetime',
-        'end_date'    => 'datetime',
-        'created_at'  => 'datetime',
-        'updated_at'  => 'datetime',
-        'deleted_at'  => 'datetime',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
         'total_likes' => 'integer',
-        'poster'      => 'string',
+        'poster' => 'string',
+        'rejection_reason' => 'string',
     ];
 
-    protected function posterUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function posterUrl(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
-            get: fn () => $this->poster ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->poster) : null,
+        return Attribute::make(
+            get: fn () => $this->poster
+                ? Storage::disk('public')->url(
+                    $this->poster,
+                )
+                : null,
         );
     }
 }

@@ -97,14 +97,22 @@
     @stack('styles')
 </head>
 
-<body class="antialiased" x-data="{ 
-    sidebarOpen: true, 
+<body class="antialiased" x-data="{
+    sidebarOpen: window.innerWidth > 768,
     collapsed: false,
     showLogoutModal: false,
-}">
+    isMobile() {
+        return window.innerWidth <= 768;
+    },
+    closeSidebarOnMobile() {
+        if (this.isMobile()) this.sidebarOpen = false;
+    }
+}" @resize.window="sidebarOpen = window.innerWidth > 768 ? true : sidebarOpen; if (window.innerWidth <= 768) collapsed = false;">
     <div class="admin-layout">
 
         <x-admin.sidebar />
+
+        <div class="sidebar-backdrop" x-show="sidebarOpen && isMobile()" x-cloak @click="sidebarOpen = false"></div>
 
         <div class="main-wrapper" :class="{ 'expanded': collapsed }">
 
