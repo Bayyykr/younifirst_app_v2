@@ -36,6 +36,7 @@
                         <th>Status</th>
                         <th>Dibuat oleh</th>
                         <th>Tanggal</th>
+                        <th>Jadwal Publish</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -52,12 +53,20 @@
                                     x-text="ann.content"></div>
                             </td>
                             <td>
-                                <template x-if="ann.status === 'publish'">
+                                <template x-if="ann.status === 'publish' && !isScheduled(ann)">
                                     <span
                                         style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #ECFDF5; color: #10B981; border-radius: 99px; font-size: 12px; font-weight: 600;">
                                         <span
                                             style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
                                         Published
+                                    </span>
+                                </template>
+                                <template x-if="ann.status === 'publish' && isScheduled(ann)">
+                                    <span
+                                        style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #FEF3C7; color: #D97706; border-radius: 99px; font-size: 12px; font-weight: 600;">
+                                        <span
+                                            style="width: 6px; height: 6px; background: #D97706; border-radius: 50%;"></span>
+                                        Scheduled
                                     </span>
                                 </template>
                                 <template x-if="ann.status === 'draft'">
@@ -74,6 +83,9 @@
                             </td>
                             <td>
                                 <span style="color: var(--text-muted); font-size: 0.875rem;" x-text="ann.date"></span>
+                            </td>
+                            <td>
+                                <span style="color: var(--text-muted); font-size: 0.875rem;" x-text="ann.publish_at_text"></span>
                             </td>
                             <td>
                                 <div class="action-buttons">
@@ -99,7 +111,7 @@
                     </template>
 
                     <tr x-show="filteredAnnouncements.length === 0" x-cloak>
-                        <td colspan="5" style="text-align: center; padding: 32px; color: #64748B;">Tidak ada pengumuman
+                        <td colspan="7" style="text-align: center; padding: 32px; color: #64748B;">Tidak ada pengumuman
                             ditemukan</td>
                     </tr>
                 </tbody>
@@ -152,19 +164,19 @@
                         <input type="hidden" name="_method" value="PUT">
                     </template>
 
-                    <div class="announcement-form-group">
+                    <div class="announcement-form-group form-title-group">
                         <label>Judul Pengumuman</label>
                         <input type="text" name="title" x-model="formData.title" required
                             placeholder="Contoh: Maintenance Sistem">
                     </div>
 
-                    <div class="announcement-form-group">
+                    <div class="announcement-form-group form-content-group">
                         <label>Isi Konten</label>
-                        <textarea name="content" x-model="formData.content" required rows="5"
+                        <textarea name="content" x-model="formData.content" required rows="9"
                             placeholder="Tuliskan detail pengumuman di sini..."></textarea>
                     </div>
 
-                    <div class="announcement-form-group">
+                    <div class="announcement-form-group form-status-group">
                         <label>Status</label>
                         <select name="status" x-model="formData.status" required>
                             <option value="publish">Publish</option>
@@ -172,7 +184,15 @@
                         </select>
                     </div>
 
-                    <div class="announcement-form-group file-group">
+                    <div class="announcement-form-group form-schedule-group">
+                        <label>Jadwal Publish (Opsional)</label>
+                        <input type="datetime-local" name="publish_at" x-model="formData.publish_at">
+                        <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: 12px; line-height: 1.5;">
+                            Kosongkan untuk publish sekarang. Jika diisi waktu mendatang, pengumuman akan tampil dan push notif dikirim saat jadwal tersebut.
+                        </small>
+                    </div>
+
+                    <div class="announcement-form-group file-group form-file-group">
                         <label>File Lampiran (Opsional)</label>
 
                         <div class="file-upload-wrapper">
@@ -236,11 +256,18 @@
                         <span
                             style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em;">Status</span>
                         <div style="margin-top: 4px;">
-                            <template x-if="formData.status === 'publish'">
+                            <template x-if="formData.status === 'publish' && !formData.is_scheduled">
                                 <span
                                     style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #ECFDF5; color: #10B981; border-radius: 99px; font-size: 12px; font-weight: 600;">
                                     <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%;"></span>
                                     Published
+                                </span>
+                            </template>
+                            <template x-if="formData.status === 'publish' && formData.is_scheduled">
+                                <span
+                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: #FEF3C7; color: #D97706; border-radius: 99px; font-size: 12px; font-weight: 600;">
+                                    <span style="width: 6px; height: 6px; background: #D97706; border-radius: 50%;"></span>
+                                    Scheduled
                                 </span>
                             </template>
                             <template x-if="formData.status === 'draft'">
@@ -265,6 +292,11 @@
                                 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Tanggal</span>
                             <p style="font-weight: 600; color: var(--text-main); margin-top: 4px;" x-text="formData.date">
                             </p>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Jadwal Publish</span>
+                            <p style="font-weight: 600; color: var(--text-main); margin-top: 4px;" x-text="formData.publish_at_text"></p>
                         </div>
                     </div>
                     <template x-if="formData.file_url">
@@ -366,8 +398,9 @@
         }
 
         .announcement-form-modal {
-            max-width: 600px;
-            overflow: hidden;
+            max-width: 920px;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .announcement-modal-header {
@@ -412,14 +445,55 @@
         .announcement-form {
             padding: 20px;
             background: var(--bg-white);
+            overflow-x: hidden;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .announcement-form *,
+        .announcement-form *::before,
+        .announcement-form *::after {
+            box-sizing: border-box;
         }
 
         .announcement-form-group {
-            margin-bottom: 20px;
+            margin-bottom: 0;
+            min-width: 0;
+        }
+
+        .form-title-group {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .form-content-group {
+            grid-column: 1;
+            grid-row: 2 / span 3;
+        }
+
+        .form-status-group {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .form-schedule-group {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .form-file-group {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .announcement-form-actions {
+            grid-column: 1 / -1;
         }
 
         .announcement-form-group.file-group {
-            margin-bottom: 24px;
+            margin-bottom: 4px;
         }
 
         .announcement-form-group label {
@@ -878,6 +952,26 @@
             font-weight: 600;
             color: var(--text-muted);
         }
+
+        @media (max-width: 768px) {
+            .announcement-form-modal {
+                max-width: 95vw;
+            }
+
+            .announcement-form {
+                grid-template-columns: 1fr;
+            }
+
+            .form-title-group,
+            .form-content-group,
+            .form-status-group,
+            .form-schedule-group,
+            .form-file-group,
+            .announcement-form-actions {
+                grid-column: 1;
+                grid-row: auto;
+            }
+        }
     </style>
 @endpush
 
@@ -887,6 +981,7 @@
             Alpine.data('announcementApp', (initialData) => ({
                 allAnnouncements: initialData,
                 search: '',
+                nowTs: Date.now(),
 
                 // Modal States
                 showFormModal: false,
@@ -901,6 +996,9 @@
                     title: '',
                     content: '',
                     status: 'publish',
+                    publish_at: '',
+                    publish_at_text: '-',
+                    is_scheduled: false,
                     file_url: null,
                     creator_name: '',
                     date: ''
@@ -911,12 +1009,13 @@
 
                 init() {
                     this.$watch('search', () => this.currentPage = 1);
+                    setInterval(() => this.nowTs = Date.now(), 30000);
                 },
 
                 openAddModal() {
                     this.isEdit = false;
                     this.selectedId = null;
-                    this.formData = { title: '', content: '', status: 'publish', file_url: null, creator_name: '', date: '' };
+                    this.formData = { title: '', content: '', status: 'publish', publish_at: '', publish_at_text: '-', is_scheduled: false, file_url: null, creator_name: '', date: '' };
                     this.selectedFileName = '';
                     this.showFormModal = true;
                 },
@@ -926,6 +1025,9 @@
                         title: ann.title,
                         content: ann.content,
                         status: ann.status,
+                        publish_at: ann.publish_at || '',
+                        publish_at_text: ann.publish_at_text || '-',
+                        is_scheduled: ann.is_scheduled,
                         file_url: ann.file_url,
                         creator_name: ann.creator_name,
                         date: ann.date
@@ -941,10 +1043,17 @@
                         title: ann.title,
                         content: ann.content,
                         status: ann.status,
+                        publish_at: ann.publish_at || '',
+                        publish_at_text: ann.publish_at_text || '-',
+                        is_scheduled: ann.is_scheduled,
                         file_url: ann.file_url
                     };
                     this.selectedFileName = '';
                     this.showFormModal = true;
+                },
+
+                isScheduled(ann) {
+                    return ann.status === 'publish' && ann.publish_at && new Date(ann.publish_at).getTime() > this.nowTs;
                 },
 
                 handleFileSelect(event) {
