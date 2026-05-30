@@ -378,3 +378,209 @@ body {
     line-height: 1.4;
 }
 
+/* Mobile-first refinements for authentication pages */
+@media (max-width: 1024px) {
+    html,
+    body {
+        min-height: 100%;
+        height: auto;
+    }
+
+    body {
+        align-items: stretch;
+        justify-content: flex-start;
+        overflow-x: hidden;
+    }
+
+    .login-container {
+        min-height: 100vh;
+        max-width: 100%;
+        margin: 0;
+        background: var(--bg-light);
+    }
+
+    .form-section {
+        width: 100%;
+        max-width: 560px;
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 7rem 2rem 3rem;
+        justify-content: center;
+    }
+
+    .logo-container {
+        top: 2rem;
+        left: 2rem;
+        right: 2rem;
+    }
+
+    .back-button,
+    .back-button[style] {
+        margin-top: 0 !important;
+        margin-bottom: 2rem !important;
+        position: static !important;
+        top: auto !important;
+    }
+}
+
+@media (max-width: 640px) {
+    body {
+        background: var(--bg-light);
+    }
+
+    .login-container {
+        min-height: 100svh;
+        box-shadow: none;
+    }
+
+    .form-section {
+        max-width: none;
+        min-height: 100svh;
+        padding: 6.5rem 1.25rem 2rem;
+    }
+
+    .logo-container {
+        top: 1.5rem;
+        left: 1.25rem;
+        right: 1.25rem;
+        gap: 10px;
+    }
+
+    .logo-container img {
+        height: 34px;
+    }
+
+    .brand-name {
+        font-size: 1.25rem;
+    }
+
+    .form-header {
+        margin-bottom: 1.75rem;
+    }
+
+    .form-header h1 {
+        font-size: clamp(1.85rem, 8vw, 2.25rem);
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+    }
+
+    .form-header p {
+        font-size: 0.98rem;
+        line-height: 1.55;
+    }
+
+    .form-group {
+        margin-bottom: 1.15rem;
+    }
+
+    .form-group input,
+    .input-field {
+        min-height: 48px;
+        font-size: 0.95rem;
+        border-radius: 12px;
+    }
+
+    .password-toggle {
+        right: 0.875rem;
+        width: 34px;
+        height: 34px;
+        justify-content: center;
+    }
+
+    .form-options {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.9rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .forgot-password {
+        width: 100%;
+        text-align: left;
+    }
+
+    .btn-submit {
+        min-height: 50px;
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .back-button,
+    .back-button[style] {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .otp-container {
+        gap: 0.65rem;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        width: 100%;
+    }
+
+    .otp-input {
+        width: clamp(48px, 19vw, 58px);
+        height: clamp(50px, 19vw, 58px);
+        font-size: 1.25rem;
+    }
+
+    .resend-section {
+        gap: 0.75rem;
+        text-align: center;
+    }
+
+    .toast-wrapper {
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        transform: translateY(-120%);
+    }
+
+    .toast-wrapper.show {
+        transform: translateY(0);
+    }
+
+    .toast-box {
+        width: 100%;
+        min-width: 0;
+        padding: 14px 16px;
+        border-radius: 14px;
+    }
+
+    .toast-content p {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 380px) {
+    .form-section {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .logo-container {
+        left: 1rem;
+        right: 1rem;
+    }
+
+    .form-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .form-header p {
+        font-size: 0.92rem;
+    }
+
+    .otp-container {
+        gap: 0.5rem;
+    }
+
+    .otp-input {
+        width: 46px;
+        height: 50px;
+    }
+}
+
