@@ -72,27 +72,25 @@ class EventController extends Controller
 
         $events = $query->orderBy($sortBy, $sortDir)->paginate($perPage);
 
-        // Attach is_liked status for the current user
-        if ($request->user()) {
-            $userLikedEventIds = EventLike::where(
-                "user_id",
-                $request->user()->user_id,
-            )
+        $userLikedEventIds = $request->user()
+            ? EventLike::where("user_id", $request->user()->user_id)
                 ->whereIn("event_id", $events->pluck("event_id"))
                 ->pluck("event_id")
-                ->toArray();
+                ->toArray()
+            : [];
 
-            $events
-                ->getCollection()
-                ->transform(function ($event) use ($userLikedEventIds) {
-                    $event->is_liked = in_array(
-                        $event->event_id,
-                        $userLikedEventIds,
-                    );
+        $events
+            ->getCollection()
+            ->transform(function ($event) use ($userLikedEventIds) {
+                $event->likes_count =
+                    (int) ($event->likes_count ?? ($event->total_likes ?? 0));
+                $event->is_liked = in_array(
+                    $event->event_id,
+                    $userLikedEventIds,
+                );
 
-                    return $event;
-                });
-        }
+                return $event;
+            });
 
         return response()->json($events);
     }
@@ -104,13 +102,13 @@ class EventController extends Controller
     {
         $event = ViewEvent::where("event_id", $event_id)->firstOrFail();
 
-        if ($request->user()) {
-            $event->is_liked = EventLike::where("event_id", $event_id)
+        $event->likes_count =
+            (int) ($event->likes_count ?? ($event->total_likes ?? 0));
+        $event->is_liked = $request->user()
+            ? EventLike::where("event_id", $event_id)
                 ->where("user_id", $request->user()->user_id)
-                ->exists();
-        } else {
-            $event->is_liked = false;
-        }
+                ->exists()
+            : false;
 
         return response()->json(["data" => $event]);
     }
