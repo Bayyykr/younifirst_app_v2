@@ -122,6 +122,18 @@ Route::prefix("admin")
             AdminLostfoundController::class,
             "store",
         ])->name("lostfound.store");
+        Route::get("/lostfound/{lostfound_id}/comments", [
+            AdminLostfoundController::class,
+            "comments",
+        ])->name("lostfound.comments");
+        Route::post("/lostfound/{lostfound_id}/comments", [
+            AdminLostfoundController::class,
+            "addComment",
+        ])->name("lostfound.comments.store");
+        Route::delete("/lostfound/comments/{comment_id}", [
+            AdminLostfoundController::class,
+            "deleteComment",
+        ])->name("lostfound.comments.destroy");
         Route::post("/lostfound/{lostfound_id}/resolve", [
             AdminLostfoundController::class,
             "resolve",

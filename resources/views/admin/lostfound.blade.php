@@ -71,7 +71,7 @@
                                     @click="openDetailModal(item); open = false">
                                 <i data-lucide="eye" style="width:14px;height:14px;"></i> Lihat Detail
                             </button>
-                            <button x-show="item.status !== 'claimed'"
+                            <button x-show="item.status !== 'claimed' && item.can_claim"
                                     class="sf-dropdown-item sf-dropdown-success"
                                     @click="openResolveModal(item); open = false">
                                 <i data-lucide="check-circle" style="width:14px;height:14px;"></i> Tandai Selesai
@@ -113,19 +113,16 @@
                     </p>
                 </div>
 
-                {{-- Footer: comment input + count --}}
+                {{-- Footer: comment count --}}
                 <div class="sf-card-footer">
-                    <div class="sf-comment-row">
-                        <input type="text" class="sf-comment-input"
-                               placeholder="Beri Komentar...">
-                        <div class="sf-comment-count">
-                            <i data-lucide="message-circle"
-                               style="width:15px;height:15px;color:#64748B;"></i>
-                            <span x-text="item.comments_count ?? 0"
-                                  style="font-size:13px;color:#64748B;font-weight:500;"></span>
-                        </div>
+                    <div class="sf-comment-count">
+                        <i data-lucide="message-circle"
+                           style="width:15px;height:15px;color:#64748B;"></i>
+                        <span x-text="item.comments_count ?? 0"
+                              style="font-size:13px;color:#64748B;font-weight:500;"></span>
                     </div>
                 </div>
+
             </div>
         </template>
 
@@ -264,7 +261,7 @@
                                         @click="openDetailModal(item)">
                                     <i data-lucide="eye" style="width:18px;height:18px;"></i>
                                 </button>
-                                <button x-show="item.status !== 'claimed'"
+                                <button x-show="item.status !== 'claimed' && item.can_claim"
                                         title="Mark as Resolved"
                                         class="action-btn text-primary"
                                         @click="openResolveModal(item)">
@@ -482,7 +479,7 @@
                         </div>
 
                         {{-- Action buttons --}}
-                        <div class="dm-actions" x-show="selectedItem.status !== 'claimed'">
+                        <div class="dm-actions" x-show="selectedItem.status !== 'claimed' && selectedItem.can_claim">
                             <button class="dm-btn-resolve"
                                     @click="openResolveModal(selectedItem); showDetailModal = false">
                                 <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
@@ -496,7 +493,7 @@
                         </div>
 
                         {{-- Info note --}}
-                        <div class="dm-note" x-show="selectedItem.status !== 'claimed'">
+                        <div class="dm-note" x-show="selectedItem.status !== 'claimed' && selectedItem.can_claim">
                             <i data-lucide="info" style="width:14px;height:14px;flex-shrink:0;color:#64748B;margin-top:1px;"></i>
                             <p>Postingan yang ditandai selesai tidak akan ditampilkan lagi di halaman utama karena kasusnya dianggap sudah selesai atau barang telah ditemukan.</p>
                         </div>
@@ -541,8 +538,8 @@
                                         <div class="dm-comment-content">
                                             <div class="dm-comment-top">
                                                 <span class="dm-comment-name" x-text="thread.commenter_name"></span>
-                                                <span class="dm-comment-time" x-text="thread.time_ago"></span>
-                                                <template x-if="thread.user_id === {{ auth()->id() }} || '{{ auth()->user()->role }}' === 'admin'">
+                                                <span class="dm-comment-time" x-text="formatRelativeTime(thread.created_at)"></span>
+                                                <template x-if="thread.user_id === @json(auth()->id()) || @json(auth()->user()->role) === 'admin'">
                                                     <button class="dm-comment-menu" @click="deleteComment(thread.comment_id)" title="Hapus Komentar">
                                                         <i data-lucide="trash-2" style="width:14px;height:14px;color:#EF4444;"></i>
                                                     </button>
@@ -574,8 +571,8 @@
                                                     <div class="dm-comment-content">
                                                         <div class="dm-comment-top">
                                                             <span class="dm-comment-name" x-text="reply.commenter_name"></span>
-                                                            <span class="dm-comment-time" x-text="reply.time_ago"></span>
-                                                            <template x-if="reply.user_id === {{ auth()->id() }} || '{{ auth()->user()->role }}' === 'admin'">
+                                                            <span class="dm-comment-time" x-text="formatRelativeTime(reply.created_at)"></span>
+                                                            <template x-if="reply.user_id === @json(auth()->id()) || @json(auth()->user()->role) === 'admin'">
                                                                 <button class="dm-comment-menu" @click="deleteComment(reply.comment_id)" title="Hapus Komentar">
                                                                     <i data-lucide="trash-2" style="width:14px;height:14px;color:#EF4444;"></i>
                                                                 </button>
@@ -888,19 +885,17 @@ html.dark {
 }
 
 /* Card Footer */
-.sf-card-footer { padding: 10px 14px 14px; }
-.sf-comment-row { display: flex; align-items: center; gap: 8px; }
-.sf-comment-input {
-    flex: 1; padding: 7px 14px;
-    border: 1.5px solid var(--border-color);
-    border-radius: 40px;
-    background: var(--bg-main);
-    color: var(--text-muted);
-    font-size: 13px; outline: none;
-    transition: border-color 0.2s;
+.sf-card-footer {
+    padding: 0 14px 14px;
+    display: flex;
+    justify-content: flex-end;
 }
-.sf-comment-input:focus { border-color: #4F46E5; }
-.sf-comment-count { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.sf-comment-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
 
 /* Empty state */
 .sf-empty {
@@ -1563,6 +1558,8 @@ html.dark {
 
         Alpine.data('lostFoundManagement', (initialItems) => ({
             allItems: initialItems,
+            currentUserRole: @json(auth()->user()->role),
+            relativeTimeInterval: null,
             search: '',
             statusFilter: 'all',
             currentPage: 1,
@@ -1598,6 +1595,9 @@ html.dark {
                 this.$watch('paginatedItems', () => {
                     this.$nextTick(() => lucide.createIcons());
                 });
+                this.relativeTimeInterval = setInterval(() => {
+                    this.comments = this.comments.map(comment => ({ ...comment }));
+                }, 60000);
                 this.$nextTick(() => lucide.createIcons());
             },
 
@@ -1605,6 +1605,7 @@ html.dark {
                 let q = this.search.toLowerCase();
                 let s = this.statusFilter;
                 return this.allItems.filter(item => {
+                    if (this.currentUserRole === 'satpam' && item.status === 'claimed') return false;
                     let matchesSearch = q === '' ||
                         item.name.toLowerCase().includes(q) ||
                         item.description.toLowerCase().includes(q) ||
@@ -1646,6 +1647,28 @@ html.dark {
             replyTo(comment) {
                 this.newComment = `[re:${comment.comment_id}] `;
                 this.$refs.commentInput.focus();
+            },
+
+            formatRelativeTime(value) {
+                if (!value) return '';
+                const date = new Date(value);
+                if (Number.isNaN(date.getTime())) return '';
+
+                const diffSeconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+                if (diffSeconds < 60) return 'Baru saja';
+
+                const units = [
+                    { limit: 3600, seconds: 60, label: 'menit' },
+                    { limit: 86400, seconds: 3600, label: 'jam' },
+                    { limit: 604800, seconds: 86400, label: 'hari' },
+                    { limit: 2592000, seconds: 604800, label: 'minggu' },
+                    { limit: 31536000, seconds: 2592000, label: 'bulan' },
+                    { limit: Infinity, seconds: 31536000, label: 'tahun' },
+                ];
+
+                const unit = units.find(item => diffSeconds < item.limit);
+                const amount = Math.floor(diffSeconds / unit.seconds);
+                return `${amount} ${unit.label} yang lalu`;
             },
 
             get threadedComments() {
@@ -1713,9 +1736,8 @@ html.dark {
             async loadComments(lostfoundId) {
                 this.loadingComments = true;
                 try {
-                    const response = await fetch(`{{ url('/api/lostfound') }}/${lostfoundId}/comments?per_page=100`, {
+                    const response = await fetch(`{{ url('/admin/lostfound') }}/${lostfoundId}/comments?per_page=100`, {
                         headers: {
-                            'Authorization': 'Bearer ' + '{{ session('token', '') }}',
                             'Accept': 'application/json'
                         }
                     });
@@ -1775,18 +1797,26 @@ html.dark {
                 this.newComment = '';
 
                 try {
-                    const response = await fetch(`{{ url('/api/lostfound') }}/${this.selectedItem.id}/comments`, {
+                    const response = await fetch(`{{ url('/admin/lostfound') }}/${this.selectedItem.id}/comments`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + '{{ session('token', '') }}',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({ comment: tempComment })
                     });
 
+                    const result = await response.json().catch(() => ({}));
                     if (!response.ok) {
-                        throw new Error('Gagal mengirim komentar');
+                        throw new Error(result.message || 'Gagal mengirim komentar');
+                    }
+
+                    if (result.data && !this.comments.find(c => c.comment_id === result.data.comment_id)) {
+                        this.comments.push(result.data);
+                        const idx = this.allItems.findIndex(i => i.id === this.selectedItem.id);
+                        if (idx !== -1) this.allItems[idx].comments_count = this.comments.length;
+                        this.scrollToBottom();
                     }
                 } catch (e) {
                     this.showToast(e.message, 'error');
@@ -1800,10 +1830,10 @@ html.dark {
                 if(!confirm('Hapus komentar ini?')) return;
 
                 try {
-                    const response = await fetch(`{{ url('/api/lostfound/comments') }}/${commentId}`, {
+                    const response = await fetch(`{{ url('/admin/lostfound/comments') }}/${commentId}`, {
                         method: 'DELETE',
                         headers: {
-                            'Authorization': 'Bearer ' + '{{ session('token', '') }}',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json'
                         }
                     });
@@ -1891,13 +1921,19 @@ html.dark {
                     if (response.ok) {
                         const index = this.allItems.findIndex(i => i.id === this.selectedItem.id);
                         if (index !== -1) {
-                            this.allItems[index].status       = 'claimed';
-                            this.allItems[index].status_label = 'Diklaim';
-                            this.allItems[index].status_class = 'status-warning';
+                            if (this.currentUserRole === 'satpam') {
+                                this.allItems.splice(index, 1);
+                            } else {
+                                this.allItems[index].status       = 'claimed';
+                                this.allItems[index].status_label = 'Diklaim';
+                                this.allItems[index].status_class = 'status-warning';
+                            }
                         }
                         this.showResolveModal = false;
                         this.showDetailModal  = false;
                         this.showToast(result.message);
+                    } else {
+                        this.showToast(result.message || 'Gagal memperbarui status', 'error');
                     }
                 } catch {
                     this.showToast('Gagal memperbarui status', 'error');
