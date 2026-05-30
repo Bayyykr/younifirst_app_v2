@@ -1003,12 +1003,160 @@
         }
 
         @media (max-width: 768px) {
+            .user-management {
+                width: 100%;
+                min-width: 0;
+                overflow-x: hidden;
+            }
+
+            .filter-container,
+            .filter-bar,
+            .search-wrapper,
+            .filter-actions-group,
+            .filter-actions-group .btn-primary {
+                width: 100%;
+            }
+
+            .filter-bar {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .search-wrapper {
+                max-width: none;
+            }
+
+            .filter-actions-group .btn-primary {
+                justify-content: center;
+            }
+
+            .table-card {
+                overflow: visible;
+                background: transparent;
+                border: 0;
+                box-shadow: none;
+            }
+
+            .admin-table,
+            .admin-table tbody,
+            .admin-table tr,
+            .admin-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .admin-table thead {
+                display: none;
+            }
+
+            .admin-table tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .admin-table tbody tr {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                padding: 14px;
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+            }
+
+            .admin-table tbody td {
+                border-bottom: 0;
+                padding: 9px 0;
+                font-size: 13px;
+            }
+
+            .admin-table tbody td:first-child > div {
+                width: 100% !important;
+                max-width: 100%;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .admin-table tbody td:nth-child(2) .text-truncate-2 {
+                max-width: 100% !important;
+                -webkit-line-clamp: 4;
+                word-break: break-word;
+            }
+
+            .admin-table tbody td:not(:first-child) {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                border-top: 1px solid var(--border-color);
+                text-align: right;
+            }
+
+            .admin-table tbody td:not(:first-child)::before {
+                content: '';
+                color: var(--text-muted);
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                text-align: left;
+                flex-shrink: 0;
+            }
+
+            .admin-table tbody td:nth-child(2)::before { content: 'Konten'; }
+            .admin-table tbody td:nth-child(3)::before { content: 'Status'; }
+            .admin-table tbody td:nth-child(4)::before { content: 'Dibuat oleh'; }
+            .admin-table tbody td:nth-child(5)::before { content: 'Tanggal'; }
+            .admin-table tbody td:nth-child(6)::before { content: 'Jadwal Publish'; }
+            .admin-table tbody td:nth-child(7)::before { content: 'Aksi'; }
+
+            .action-buttons {
+                justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+
+            .pagination-container {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 12px;
+                padding: 18px 0 0;
+                background: transparent;
+                border-top: 0;
+            }
+
+            .pagination-info {
+                text-align: center;
+            }
+
+            .pagination-buttons,
+            .page-numbers {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .modal-overlay {
+                align-items: flex-end;
+                padding: 12px;
+            }
+
+            .modal-container,
             .announcement-form-modal {
-                max-width: 95vw;
+                width: 100%;
+                max-width: 100%;
+                max-height: calc(100vh - 24px);
+                border-radius: 20px;
+            }
+
+            .announcement-modal-header,
+            .modal-header {
+                padding: 18px;
             }
 
             .announcement-form {
                 grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 18px;
             }
 
             .form-title-group,
@@ -1019,6 +1167,79 @@
             .announcement-form-actions {
                 grid-column: 1;
                 grid-row: auto;
+            }
+
+            .announcement-form-group textarea {
+                min-height: 180px;
+                rows: auto;
+            }
+
+            .file-upload-box {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .file-browse-btn {
+                width: 100%;
+            }
+
+            .announcement-form-actions {
+                align-items: stretch;
+                flex-direction: column-reverse;
+            }
+
+            .announcement-form-actions button,
+            .btn-modal-secondary,
+            .btn-modal-primary {
+                width: 100%;
+            }
+
+            .modal-footer {
+                align-items: stretch !important;
+                flex-direction: column !important;
+                padding: 18px !important;
+            }
+
+            .modal-footer button,
+            .modal-footer .btn-primary {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .modal-container > div[style*='padding: 24px'] {
+                padding: 18px !important;
+            }
+
+            .modal-container div[style*='grid-template-columns: 1fr 1fr'] {
+                grid-template-columns: 1fr !important;
+            }
+
+            .modal-container div[style*='justify-content: space-between'] {
+                align-items: stretch !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+            }
+
+            .modal-container div[style*='display: flex; gap: 12px'] {
+                flex-direction: column !important;
+            }
+
+            .toast-wrapper {
+                left: 16px;
+                right: 16px;
+                top: calc(var(--topbar-height) + 12px);
+            }
+
+            .toast-box {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .pagination-btn {
+                padding-left: 10px;
+                padding-right: 10px;
             }
         }
     </style>
