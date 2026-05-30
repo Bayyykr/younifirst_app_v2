@@ -108,11 +108,10 @@
         .badge-inactive { background: #F1F5F9; color: #475569; }
         .badge-suspended { background: #FEF3C7; color: #D97706; }
         .badge-blocked { background: #FEE2E2; color: #B91C1C; }
-        
+
         .footer-section {
             margin-top: 40px;
             width: 100%;
-            page-break-inside: avoid;
         }
         .info-cell {
             width: 60%;
@@ -220,7 +219,7 @@
     </table>
 
     @if(count($suspensions) > 0)
-    <div class="section-title" style="page-break-before: always;">Riwayat Tindakan Moderasi</div>
+    <div class="section-title">Riwayat Tindakan Moderasi</div>
     <table class="data-table">
         <thead>
             <tr>

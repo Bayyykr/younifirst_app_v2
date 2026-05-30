@@ -107,11 +107,10 @@
         .badge-lost { background: #FEE2E2; color: #B91C1C; }
         .badge-found { background: #FEF3C7; color: #D97706; }
         .badge-resolved { background: #DCFCE7; color: #15803D; }
-        
+
         .footer-section {
             margin-top: 40px;
             width: 100%;
-            page-break-inside: avoid;
         }
         .info-cell {
             width: 60%;

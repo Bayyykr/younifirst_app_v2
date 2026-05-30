@@ -108,11 +108,10 @@
         .badge-regional { background: #ECFDF5; color: #047857; }
         .badge-nasional { background: #FFF7ED; color: #C2410C; }
         .badge-internasional { background: #F5F3FF; color: #6D28D9; }
-        
+
         .footer-section {
             margin-top: 40px;
             width: 100%;
-            page-break-inside: avoid;
         }
         .info-cell {
             width: 70%;
@@ -236,7 +235,7 @@
                         @forelse($team->members as $member)
                             @if($member->user)
                                 <li class="member-item">
-                                    {{ $member->user->name }} 
+                                    {{ $member->user->name }}
                                     <span style="color: #64748B;">({{ $member->user->nim ?? '-' }})</span>
                                     @if($member->role === 'leader')
                                         <strong style="color: #8B5CF6;">[Leader]</strong>

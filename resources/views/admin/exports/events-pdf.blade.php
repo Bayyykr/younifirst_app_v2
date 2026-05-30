@@ -107,11 +107,10 @@
         .badge-approved { background: #DCFCE7; color: #15803D; }
         .badge-pending { background: #FEF3C7; color: #D97706; }
         .badge-rejected { background: #FEE2E2; color: #B91C1C; }
-        
+
         .footer-section {
             margin-top: 40px;
             width: 100%;
-            page-break-inside: avoid;
         }
         .info-cell {
             width: 60%;
