@@ -17,8 +17,8 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
+        return view("profile.edit", [
+            "user" => $request->user(),
         ]);
     }
 
@@ -30,27 +30,27 @@ class ProfileController extends Controller
         $user = $request->user();
 
         // Handle photo upload BEFORE fill() so UploadedFile never touches $user->photo
-        if ($request->hasFile('photo')) {
-            $oldPhoto = $user->getOriginal('photo'); // capture path before any changes
-            $path = $request->file('photo')->store('profiles', 'public');
+        if ($request->hasFile("photo")) {
+            $oldPhoto = $user->getOriginal("photo"); // capture path before any changes
+            $path = $request->file("photo")->store("profiles", "public");
             $user->photo = $path;
 
             // Delete old photo after new one is successfully stored
             if ($oldPhoto) {
-                Storage::disk('public')->delete($oldPhoto);
+                Storage::disk("public")->delete($oldPhoto);
             }
         }
 
-        // Only fill text fields — photo is handled separately above
-        $user->fill($request->only(['name', 'email']));
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
+        // Email SSO is tied to authentication and must not be changed from settings.
+        // Only update editable profile fields here; photo is handled separately above.
+        $user->fill($request->only(["name"]));
 
         $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route("profile.edit")->with(
+            "status",
+            "profile-updated",
+        );
     }
 
     /**
@@ -59,23 +59,25 @@ class ProfileController extends Controller
     public function updateNotifications(Request $request)
     {
         $request->validate([
-            'notify_email' => 'required|boolean',
-            'notify_event' => 'required|boolean',
-            'notify_team' => 'required|boolean',
-            'notify_lostfound' => 'required|boolean',
+            "notify_email" => "required|boolean",
+            "notify_event" => "required|boolean",
+            "notify_team" => "required|boolean",
+            "notify_lostfound" => "required|boolean",
         ]);
 
         $user = $request->user();
-        $user->update($request->only([
-            'notify_email',
-            'notify_event',
-            'notify_team',
-            'notify_lostfound'
-        ]));
+        $user->update(
+            $request->only([
+                "notify_email",
+                "notify_event",
+                "notify_team",
+                "notify_lostfound",
+            ]),
+        );
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Pengaturan notifikasi berhasil diperbarui.'
+            "status" => "success",
+            "message" => "Pengaturan notifikasi berhasil diperbarui.",
         ]);
     }
 
@@ -84,8 +86,8 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+        $request->validateWithBag("userDeletion", [
+            "password" => ["required", "current_password"],
         ]);
 
         $user = $request->user();
@@ -97,6 +99,6 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        return Redirect::to("/");
     }
 }

@@ -130,6 +130,10 @@ Route::prefix("admin")
             AdminLostfoundController::class,
             "addComment",
         ])->name("lostfound.comments.store");
+        Route::put("/lostfound/comments/{comment_id}", [
+            AdminLostfoundController::class,
+            "updateComment",
+        ])->name("lostfound.comments.update");
         Route::delete("/lostfound/comments/{comment_id}", [
             AdminLostfoundController::class,
             "deleteComment",

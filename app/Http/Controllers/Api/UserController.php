@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Views\ViewUser;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -178,7 +179,15 @@ class UserController extends Controller
         ]);
 
         $user = $request->user();
-        $user->update(["fcm_token" => $request->fcm_token]);
+
+        DB::transaction(function () use ($request, $user) {
+            User::query()
+                ->where("fcm_token", "=", $request->fcm_token)
+                ->where("user_id", "!=", $user->user_id)
+                ->update(["fcm_token" => null]);
+
+            $user->update(["fcm_token" => $request->fcm_token]);
+        });
 
         return response()->json([
             "message" => "FCM token updated successfully",

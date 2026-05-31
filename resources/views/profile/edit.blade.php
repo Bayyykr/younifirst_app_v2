@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-<div class="settings-container" x-data="{ 
+<div class="settings-container" x-data="{
     activeTab: '{{ $errors->updatePassword->any() || session('status') === 'password-updated' ? 'security' : 'profile' }}',
     notifyEmail: {{ $user->notify_email ? 'true' : 'false' }},
     notifyEvent: {{ $user->notify_event ? 'true' : 'false' }},
@@ -44,7 +44,7 @@
         <div class="settings-sidebar">
             <div class="profile-card">
                 <div class="avatar-edit-wrapper">
-                    <img src="{{ $user->photo_url }}" 
+                    <img src="{{ $user->photo_url }}"
                          alt="Avatar" class="profile-avatar-large">
                     <button class="camera-btn" @click="$refs.photoInput.click()">
                         <i data-lucide="camera"></i>
@@ -96,7 +96,7 @@
 
                     <div class="form-group">
                         <label for="name">Username</label>
-                        <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" 
+                        <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}"
                                class="form-input" placeholder="Masukkan username Anda">
                         @error('name')
                             <span class="text-danger" style="font-size: 0.75rem;">{{ $message }}</span>
@@ -105,11 +105,11 @@
 
                     <div class="form-group">
                         <label for="email">Email SSO Anda</label>
-                        <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" 
-                               class="form-input" placeholder="Masukkan email SSO Anda">
-                        @error('email')
-                            <span class="text-danger" style="font-size: 0.75rem;">{{ $message }}</span>
-                        @enderror
+                        <input type="email" id="email" value="{{ $user->email }}"
+                               class="form-input" placeholder="Email SSO tidak dapat diganti" disabled aria-describedby="email-sso-help">
+                        <p id="email-sso-help" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">
+                            Email SSO terhubung dengan akun autentikasi dan tidak dapat diganti melalui pengaturan.
+                        </p>
                     </div>
 
                     @if (session('status') === 'profile-updated')
@@ -197,7 +197,7 @@
                     <div class="form-group" x-data="{ show: false }">
                         <label for="current_password">Kata Sandi Saat Ini</label>
                         <div style="position: relative;">
-                            <input :type="show ? 'text' : 'password'" id="current_password" name="current_password" 
+                            <input :type="show ? 'text' : 'password'" id="current_password" name="current_password"
                                    class="form-input" placeholder="Masukkan kata sandi saat ini">
                             <button type="button" @click="show = !show" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
                                 <i x-show="!show" data-lucide="eye" style="width: 18px; height: 18px;"></i>
@@ -230,7 +230,7 @@
                     <div class="form-group" x-data="{ show: false }">
                         <label for="password_confirmation">Konfirmasi Kata Sandi Baru</label>
                         <div style="position: relative;">
-                            <input :type="show ? 'text' : 'password'" id="password_confirmation" name="password_confirmation" 
+                            <input :type="show ? 'text' : 'password'" id="password_confirmation" name="password_confirmation"
                                    class="form-input" placeholder="Ulangi kata sandi baru">
                             <button type="button" @click="show = !show" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
                                 <i x-show="!show" data-lucide="eye" style="width: 18px; height: 18px;"></i>

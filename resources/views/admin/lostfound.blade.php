@@ -528,7 +528,7 @@
                                     <!-- Parent Comment -->
                                     <div class="dm-comment-item" style="margin-bottom: 8px;">
                                         <template x-if="thread.commenter_photo">
-                                            <img :src="thread.commenter_photo" class="dm-comment-avatar" style="object-fit: cover; padding: 0;" :alt="thread.commenter_name">
+                                            <img :src="thread.commenter_photo" x-on:error="$el.src = avatarPlaceholder(thread.commenter_name)" class="dm-comment-avatar" style="object-fit: cover; padding: 0;" :alt="thread.commenter_name">
                                         </template>
                                         <template x-if="!thread.commenter_photo">
                                             <div class="dm-comment-avatar"
@@ -539,14 +539,20 @@
                                             <div class="dm-comment-top">
                                                 <span class="dm-comment-name" x-text="thread.commenter_name"></span>
                                                 <span class="dm-comment-time" x-text="formatRelativeTime(thread.created_at)"></span>
-                                                <template x-if="thread.user_id === @json(auth()->id()) || @json(auth()->user()->role) === 'admin'">
-                                                    <button class="dm-comment-menu" @click="deleteComment(thread.comment_id)" title="Hapus Komentar">
-                                                        <i data-lucide="trash-2" style="width:14px;height:14px;color:#EF4444;"></i>
-                                                    </button>
+                                                <template x-if="canManageComment(thread)">
+                                                    <div class="dm-comment-actions">
+                                                        <button class="dm-comment-menu" @click="startEditComment(thread)" title="Edit Komentar">
+                                                            <i data-lucide="pencil" style="width:14px;height:14px;color:#4F46E5;"></i>
+                                                        </button>
+                                                        <button class="dm-comment-menu" @click="openDeleteCommentModal(thread.comment_id)" title="Hapus Komentar">
+                                                            <i data-lucide="trash-2" style="width:14px;height:14px;color:#EF4444;"></i>
+                                                        </button>
+                                                    </div>
                                                 </template>
                                             </div>
                                             <div class="dm-comment-text-wrapper">
-                                                <p class="dm-comment-text" x-text="getCleanComment(thread.comment)"></p>
+                                                <p class="dm-comment-text" x-show="editingCommentId !== thread.comment_id" x-text="getCleanComment(thread.comment)"></p>
+                                                <div x-show="editingCommentId === thread.comment_id" class="dm-editing-hint">Sedang diedit di kolom input bawah</div>
                                             </div>
                                             <div style="margin-top: 4px;">
                                                 <button @click="replyTo(thread)" style="background:none; border:none; color:#94A3B8; font-size: 11px; cursor: pointer; font-weight: 500; padding: 0;">Balas</button>
@@ -561,7 +567,7 @@
                                             <template x-for="reply in thread.all_replies" :key="reply.comment_id">
                                                 <div class="dm-comment-item" style="margin-bottom: 8px;">
                                                     <template x-if="reply.commenter_photo">
-                                                        <img :src="reply.commenter_photo" class="dm-comment-avatar" style="width: 24px; height: 24px; object-fit: cover; padding: 0;" :alt="reply.commenter_name">
+                                                        <img :src="reply.commenter_photo" x-on:error="$el.src = avatarPlaceholder(reply.commenter_name)" class="dm-comment-avatar" style="width: 24px; height: 24px; object-fit: cover; padding: 0;" :alt="reply.commenter_name">
                                                     </template>
                                                     <template x-if="!reply.commenter_photo">
                                                         <div class="dm-comment-avatar" style="width: 24px; height: 24px; font-size: 10px;"
@@ -572,17 +578,23 @@
                                                         <div class="dm-comment-top">
                                                             <span class="dm-comment-name" x-text="reply.commenter_name"></span>
                                                             <span class="dm-comment-time" x-text="formatRelativeTime(reply.created_at)"></span>
-                                                            <template x-if="reply.user_id === @json(auth()->id()) || @json(auth()->user()->role) === 'admin'">
-                                                                <button class="dm-comment-menu" @click="deleteComment(reply.comment_id)" title="Hapus Komentar">
-                                                                    <i data-lucide="trash-2" style="width:14px;height:14px;color:#EF4444;"></i>
-                                                                </button>
+                                                            <template x-if="canManageComment(reply)">
+                                                                <div class="dm-comment-actions">
+                                                                    <button class="dm-comment-menu" @click="startEditComment(reply)" title="Edit Komentar">
+                                                                        <i data-lucide="pencil" style="width:14px;height:14px;color:#4F46E5;"></i>
+                                                                    </button>
+                                                                    <button class="dm-comment-menu" @click="openDeleteCommentModal(reply.comment_id)" title="Hapus Komentar">
+                                                                        <i data-lucide="trash-2" style="width:14px;height:14px;color:#EF4444;"></i>
+                                                                    </button>
+                                                                </div>
                                                             </template>
                                                         </div>
                                                         <div class="dm-comment-text-wrapper">
-                                                            <p class="dm-comment-text">
+                                                            <p class="dm-comment-text" x-show="editingCommentId !== reply.comment_id">
                                                                 <span style="color:#4F46E5; font-weight:500; margin-right:4px;" x-text="'@' + getReplyName(reply.comment)"></span>
                                                                 <span x-text="getCleanComment(reply.comment)"></span>
                                                             </p>
+                                                            <div x-show="editingCommentId === reply.comment_id" class="dm-editing-hint">Sedang diedit di kolom input bawah</div>
                                                         </div>
                                                         <div style="margin-top: 4px;">
                                                             <button @click="replyTo(reply)" style="background:none; border:none; color:#94A3B8; font-size: 11px; cursor: pointer; font-weight: 500; padding: 0;">Balas</button>
@@ -594,7 +606,7 @@
                                     </template>
                                 </div>
                             </template>
-                            <template x-if="comments.length === 0 && !loadingComments">
+                            <template x-if="displayableComments.length === 0 && !loadingComments">
                                 <div style="text-align: center; color: #94A3B8; font-size: 13px; padding: 20px 0;">
                                     Belum ada komentar.
                                 </div>
@@ -613,14 +625,17 @@
                                        x-ref="commentInput"
                                        x-model="newComment"
                                        :disabled="isCommenting"
-                                       placeholder="Beri Komentar..." required>
+                                       :placeholder="editingCommentId ? 'Edit komentar...' : 'Beri Komentar...'" required>
+                                <button type="button" x-show="editingCommentId" @click="cancelEditComment" class="dm-comment-cancel" title="Batal edit">
+                                    <i data-lucide="x" style="width:16px;height:16px;"></i>
+                                </button>
                                 <button type="submit" :disabled="isCommenting || !newComment.trim()" style="background:none;border:none;cursor:pointer;color:#4F46E5;display:flex;align-items:center;justify-content:center;padding:8px;">
-                                    <i data-lucide="send" style="width:18px;height:18px;" :style="(!newComment.trim() || isCommenting) ? 'opacity:0.5' : ''"></i>
+                                    <i :data-lucide="editingCommentId ? 'check' : 'send'" style="width:18px;height:18px;" :style="(!newComment.trim() || isCommenting) ? 'opacity:0.5' : ''"></i>
                                 </button>
                             </form>
                             <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
                                 <i data-lucide="message-circle" style="width:15px;height:15px;color:#94A3B8;"></i>
-                                <span x-text="comments.length"
+                                <span x-text="displayableComments.length"
                                       style="font-size:13px;color:#94A3B8;font-weight:500;"></span>
                             </div>
                         </div>
@@ -655,6 +670,35 @@
                             :disabled="loading">
                         <span x-show="!loading">Ya, Selesai</span>
                         <span x-show="loading">Memproses...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Comment Confirmation Modal -->
+    <div class="modal-overlay" x-show="showDeleteCommentModal" x-cloak x-transition>
+        <div class="modal-container glass-panel"
+             style="max-width:400px;text-align:center;"
+             @click.outside="closeDeleteCommentModal()">
+            <div class="modal-body" style="padding:40px 30px;">
+                <div style="width:64px;height:64px;background:#FEF2F2;color:#EF4444;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                    <i data-lucide="message-circle-x" style="width:32px;height:32px;"></i>
+                </div>
+                <h3 style="font-size:18px;margin-bottom:12px;">Hapus Komentar?</h3>
+                <p style="color:#64748B;font-size:14px;margin-bottom:30px;">
+                    Komentar ini akan dihapus permanen dari percakapan.
+                </p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <button type="button" @click="closeDeleteCommentModal()"
+                            class="btn btn-secondary"
+                            style="justify-content:center;">Batal</button>
+                    <button type="button" @click="confirmDeleteComment()"
+                            class="btn btn-primary"
+                            style="background:#EF4444;justify-content:center;border-color:#EF4444;"
+                            :disabled="isDeletingComment">
+                        <span x-show="!isDeletingComment">Ya, Hapus</span>
+                        <span x-show="isDeletingComment">Menghapus...</span>
                     </button>
                 </div>
             </div>
@@ -1300,6 +1344,21 @@ html.dark {
     display: flex; align-items: center; justify-content: center;
 }
 .dm-comment-menu:hover { background: var(--bg-main); }
+.dm-comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+.dm-editing-hint {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #EEF2FF;
+    color: #4F46E5;
+    font-size: 11px;
+    font-weight: 600;
+}
 .dm-comment-text {
     font-size: 13px; color: #4B5563; line-height: 1.55; margin: 0 0 6px;
 }
@@ -1328,6 +1387,19 @@ html.dark {
     transition: border-color .2s;
 }
 .dm-comment-input:focus { border-color: #4F46E5; }
+.dm-comment-cancel {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: #FEF2F2;
+    color: #EF4444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dm-comment-cancel:hover { background: #FEE2E2; }
 
 /* ======================== SHARED MODALS ======================== */
 
@@ -1890,6 +1962,9 @@ html.dark {
         Alpine.data('lostFoundManagement', (initialItems) => ({
             allItems: initialItems,
             currentUserRole: @json(auth()->user()->role),
+            currentUserId: @json(trim((string) auth()->id())),
+            currentUserName: @json(auth()->user()->name),
+            currentUserPhoto: @json(auth()->user()->photo_url ?? null),
             relativeTimeInterval: null,
             search: '',
             statusFilter: 'all',
@@ -1902,9 +1977,12 @@ html.dark {
             showDetailModal: false,
             showResolveModal: false,
             showDeleteModal: false,
+            showDeleteCommentModal: false,
 
             // Current Selection
             selectedItem: null,
+            commentToDeleteId: null,
+            isDeletingComment: false,
             newItem: {
                 item_name: '', description: '', location: '',
                 status: 'lost', photo: null
@@ -1918,7 +1996,11 @@ html.dark {
             newComment: '',
             isCommenting: false,
             loadingComments: false,
+            editingCommentId: null,
+            editingOriginalComment: '',
             activeFirebaseRef: null,
+            activeFirebasePath: null,
+            firebaseListenStartedAt: null,
 
             init() {
                 this.$watch('search',       () => this.currentPage = 1);
@@ -1976,6 +2058,7 @@ html.dark {
                 return text.replace(/^\[re:CMT[A-Z0-9]+\]\s*/i, '');
             },
             replyTo(comment) {
+                if (this.editingCommentId) this.cancelEditComment();
                 this.newComment = `[re:${comment.comment_id}] `;
                 this.$refs.commentInput.focus();
             },
@@ -2002,15 +2085,25 @@ html.dark {
                 return `${amount} ${unit.label} yang lalu`;
             },
 
+            get displayableComments() {
+                return this.comments.filter(comment =>
+                    comment.comment_id &&
+                    comment.user_id &&
+                    comment.commenter_name &&
+                    comment.comment
+                );
+            },
+
             get threadedComments() {
+                const validComments = this.displayableComments;
                 let map = {};
-                this.comments.forEach(c => {
+                validComments.forEach(c => {
                     map[c.comment_id] = { ...c, is_reply: false, root_id: null };
                 });
 
                 let roots = [];
 
-                this.comments.forEach(c => {
+                validComments.forEach(c => {
                     const match = c.comment.match(/^\[re:(CMT[A-Z0-9]+)\]/i);
                     let targetId = match ? match[1] : null;
 
@@ -2025,7 +2118,7 @@ html.dark {
                 });
 
                 let threaded = [];
-                this.comments.forEach(c => {
+                validComments.forEach(c => {
                     if (!map[c.comment_id].is_reply) {
                         threaded.push({ ...c, all_replies: [] });
                     }
@@ -2034,7 +2127,7 @@ html.dark {
                 let threadMap = {};
                 threaded.forEach(t => threadMap[t.comment_id] = t);
 
-                this.comments.forEach(c => {
+                validComments.forEach(c => {
                     if (map[c.comment_id].is_reply) {
                         let rootId = map[c.comment_id].root_id;
                         if (threadMap[rootId]) {
@@ -2057,6 +2150,8 @@ html.dark {
                 this.showDetailModal = true;
                 this.comments = [];
                 this.newComment = '';
+                this.editingCommentId = null;
+                this.editingOriginalComment = '';
 
                 await this.loadComments(i.id);
                 this.listenToFirebase(i.id);
@@ -2074,7 +2169,9 @@ html.dark {
                     });
                     if (response.ok) {
                         const result = await response.json();
-                        this.comments = result.data;
+                        this.comments = result.data.map(comment => this.normalizeComment(comment));
+                        this.firebaseListenStartedAt = Date.now();
+                        this.updateItemCommentCount(lostfoundId);
                         this.scrollToBottom();
                     }
                 } catch (e) {
@@ -2089,43 +2186,163 @@ html.dark {
                     this.activeFirebaseRef.off();
                 }
 
-                this.activeFirebaseRef = database.ref('lostfound_comments/' + lostfoundId);
+                this.activeFirebasePath = 'lostfound_comments/' + lostfoundId;
+                this.activeFirebaseRef = database.ref(this.activeFirebasePath);
                 this.activeFirebaseRef.on('child_added', (snapshot) => {
-                    const newComment = snapshot.val();
-                    // Check if already in comments array
-                    const exists = this.comments.find(c => c.comment_id === newComment.comment_id);
-                    if (!exists) {
-                        this.comments.push({
-                            comment_id: newComment.comment_id,
-                            comment: newComment.comment,
-                            created_at: newComment.created_at,
-                            commenter_name: newComment.commenter_name,
-                            commenter_photo: newComment.commenter_photo,
-                            time_ago: newComment.time_ago,
-                            user_id: newComment.user_id
-                        });
+                    const incoming = this.normalizeComment({
+                        ...snapshot.val(),
+                        firebase_key: snapshot.key,
+                    });
+                    if (!this.isValidComment(incoming)) return;
+
+                    const index = this.comments.findIndex(c => c.comment_id === incoming.comment_id);
+                    const createdAt = new Date(incoming.created_at).getTime();
+                    const isOldFirebaseOnlyComment = index === -1
+                        && this.firebaseListenStartedAt
+                        && !Number.isNaN(createdAt)
+                        && createdAt < this.firebaseListenStartedAt - 5000;
+
+                    if (isOldFirebaseOnlyComment) return;
+
+                    if (index === -1) {
+                        this.comments.push(incoming);
                         this.scrollToBottom();
-                        // Update total count on the card
-                        const idx = this.allItems.findIndex(i => i.id === lostfoundId);
-                        if(idx !== -1) this.allItems[idx].comments_count = this.comments.length;
+                    } else {
+                        this.comments = this.comments.map(comment =>
+                            comment.comment_id === incoming.comment_id
+                                ? { ...comment, ...incoming }
+                                : comment
+                        );
                     }
+
+                    this.updateItemCommentCount(lostfoundId);
+                    this.$nextTick(() => lucide.createIcons());
                 });
 
-                // Handle child_removed for deleted comments
-                this.activeFirebaseRef.on('child_removed', (snapshot) => {
-                    const deletedComment = snapshot.val();
-                    this.comments = this.comments.filter(c => c.comment_id !== deletedComment.comment_id);
-                    const idx = this.allItems.findIndex(i => i.id === lostfoundId);
-                    if(idx !== -1) this.allItems[idx].comments_count = this.comments.length;
+                this.activeFirebaseRef.on('child_changed', (snapshot) => {
+                    const updatedComment = this.normalizeComment({
+                        ...snapshot.val(),
+                        firebase_key: snapshot.key,
+                    });
+                    if (!this.isValidComment(updatedComment)) return;
+
+                    this.upsertComment(updatedComment);
+                    this.$nextTick(() => lucide.createIcons());
                 });
+
+                this.activeFirebaseRef.on('child_removed', (snapshot) => {
+                    const deletedComment = this.normalizeComment({
+                        ...snapshot.val(),
+                        firebase_key: snapshot.key,
+                    });
+                    this.comments = this.comments.filter(c => c.comment_id !== deletedComment.comment_id);
+                    if (this.editingCommentId === deletedComment.comment_id) {
+                        this.cancelEditComment();
+                    }
+                    this.updateItemCommentCount(lostfoundId);
+                });
+            },
+
+            avatarPlaceholder(name) {
+                return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || '?')}&background=64748B&color=fff`;
+            },
+
+            isValidComment(comment) {
+                return Boolean(
+                    comment &&
+                    comment.comment_id &&
+                    comment.user_id &&
+                    comment.commenter_name &&
+                    comment.comment
+                );
+            },
+
+            normalizeComment(comment) {
+                return {
+                    ...comment,
+                    comment_id: comment.comment_id ? String(comment.comment_id).trim() : comment.comment_id,
+                    user_id: comment.user_id ? String(comment.user_id).trim() : comment.user_id,
+                    update_at: comment.update_at || null,
+                };
+            },
+
+            upsertComment(comment) {
+                const normalized = this.normalizeComment(comment);
+                const index = this.comments.findIndex(c => c.comment_id === normalized.comment_id);
+
+                if (index === -1) {
+                    this.comments.push(normalized);
+                    this.scrollToBottom();
+                } else {
+                    this.comments = this.comments.map(comment =>
+                        comment.comment_id === normalized.comment_id
+                            ? { ...comment, ...normalized }
+                            : comment
+                    );
+                }
+
+                if (this.selectedItem) {
+                    this.updateItemCommentCount(this.selectedItem.id);
+                }
+            },
+
+            updateItemCommentCount(lostfoundId) {
+                const count = this.displayableComments.length;
+                const idx = this.allItems.findIndex(i => i.id === lostfoundId);
+                if (idx !== -1) this.allItems[idx].comments_count = count;
+                if (this.selectedItem && this.selectedItem.id === lostfoundId) {
+                    this.selectedItem.comments_count = count;
+                }
+            },
+
+            canManageComment(comment) {
+                return String(comment.user_id).trim() === this.currentUserId;
+            },
+
+            startEditComment(comment) {
+                if (!this.canManageComment(comment)) return;
+
+                this.editingCommentId = comment.comment_id;
+                this.editingOriginalComment = comment.comment;
+                this.newComment = comment.comment;
+                this.$nextTick(() => {
+                    this.$refs.commentInput.focus();
+                    lucide.createIcons();
+                });
+            },
+
+            cancelEditComment() {
+                this.editingCommentId = null;
+                this.editingOriginalComment = '';
+                this.newComment = '';
+                this.$nextTick(() => lucide.createIcons());
             },
 
             async submitComment() {
                 if (!this.newComment.trim() || this.isCommenting) return;
 
+                if (this.editingCommentId) {
+                    await this.updateComment();
+                    return;
+                }
+
                 this.isCommenting = true;
-                const tempComment = this.newComment;
+                const tempComment = this.newComment.trim();
+                const tempId = `TMP${Date.now()}`;
                 this.newComment = '';
+                this.upsertComment({
+                    comment_id: tempId,
+                    lostfound_id: this.selectedItem.id,
+                    user_id: this.currentUserId,
+                    comment: tempComment,
+                    created_at: new Date().toISOString(),
+                    update_at: null,
+                    commenter_name: this.currentUserName,
+                    commenter_photo: this.currentUserPhoto,
+                    time_ago: 'Baru saja',
+                });
+                this.scrollToBottom();
+                this.$nextTick(() => lucide.createIcons());
 
                 try {
                     const response = await fetch(`{{ url('/admin/lostfound') }}/${this.selectedItem.id}/comments`, {
@@ -2143,13 +2360,15 @@ html.dark {
                         throw new Error(result.message || 'Gagal mengirim komentar');
                     }
 
-                    if (result.data && !this.comments.find(c => c.comment_id === result.data.comment_id)) {
-                        this.comments.push(result.data);
-                        const idx = this.allItems.findIndex(i => i.id === this.selectedItem.id);
-                        if (idx !== -1) this.allItems[idx].comments_count = this.comments.length;
+                    this.comments = this.comments.filter(c => c.comment_id !== tempId);
+                    if (result.data) {
+                        this.upsertComment(result.data);
                         this.scrollToBottom();
+                        this.$nextTick(() => lucide.createIcons());
                     }
                 } catch (e) {
+                    this.comments = this.comments.filter(c => c.comment_id !== tempId);
+                    if (this.selectedItem) this.updateItemCommentCount(this.selectedItem.id);
                     this.showToast(e.message, 'error');
                     this.newComment = tempComment;
                 } finally {
@@ -2157,11 +2376,95 @@ html.dark {
                 }
             },
 
-            async deleteComment(commentId) {
-                if(!confirm('Hapus komentar ini?')) return;
+            async updateComment() {
+                const commentId = String(this.editingCommentId).trim();
+                const newText = this.newComment.trim();
+                const index = this.comments.findIndex(c => c.comment_id === commentId);
+                if (index === -1) {
+                    this.cancelEditComment();
+                    return;
+                }
+
+                this.isCommenting = true;
+                const previousComment = this.comments[index].comment;
+                const previousUpdateAt = this.comments[index].update_at || null;
+                const optimisticUpdateAt = new Date().toISOString();
+                this.comments = this.comments.map(comment =>
+                    comment.comment_id === commentId
+                        ? { ...comment, comment: newText, update_at: optimisticUpdateAt }
+                        : comment
+                );
+                this.cancelEditComment();
 
                 try {
-                    const response = await fetch(`{{ url('/admin/lostfound/comments') }}/${commentId}`, {
+                    const response = await fetch(`{{ url('/admin/lostfound/comments') }}/${encodeURIComponent(commentId)}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ comment: newText })
+                    });
+
+                    const result = await response.json().catch(() => ({}));
+                    if (!response.ok && response.status !== 404) {
+                        throw new Error(result.message || 'Gagal mengedit komentar');
+                    }
+
+                    const updatedComment = result.data
+                        ? this.normalizeComment(result.data)
+                        : {
+                            comment_id: commentId,
+                            comment: newText,
+                            update_at: optimisticUpdateAt,
+                        };
+
+                    this.upsertComment(updatedComment);
+                    await this.syncFirebaseSafely(() => this.updateFirebaseComment(commentId, {
+                        comment: updatedComment.comment,
+                        update_at: updatedComment.update_at || optimisticUpdateAt,
+                    }));
+                    this.showToast(result.message || 'Komentar diperbarui');
+                } catch (e) {
+                    this.comments = this.comments.map(comment =>
+                        comment.comment_id === commentId
+                            ? { ...comment, comment: previousComment, update_at: previousUpdateAt }
+                            : comment
+                    );
+                    this.showToast(e.message, 'error');
+                } finally {
+                    this.isCommenting = false;
+                }
+            },
+
+            openDeleteCommentModal(commentId) {
+                this.commentToDeleteId = String(commentId).trim();
+                this.showDeleteCommentModal = true;
+                this.$nextTick(() => lucide.createIcons());
+            },
+
+            closeDeleteCommentModal() {
+                if (this.isDeletingComment) return;
+                this.showDeleteCommentModal = false;
+                this.commentToDeleteId = null;
+            },
+
+            async confirmDeleteComment() {
+                if (!this.commentToDeleteId || this.isDeletingComment) return;
+                await this.deleteComment(this.commentToDeleteId);
+            },
+
+            async deleteComment(commentId) {
+                commentId = String(commentId).trim();
+                this.isDeletingComment = true;
+                const previousComments = [...this.comments];
+                this.comments = this.comments.filter(c => c.comment_id !== commentId);
+                if (this.editingCommentId === commentId) this.cancelEditComment();
+                if (this.selectedItem) this.updateItemCommentCount(this.selectedItem.id);
+
+                try {
+                    const response = await fetch(`{{ url('/admin/lostfound/comments') }}/${encodeURIComponent(commentId)}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -2169,19 +2472,70 @@ html.dark {
                         }
                     });
 
-                    if(response.ok) {
-                        if (this.activeFirebaseRef) {
-                            this.activeFirebaseRef.orderByChild('comment_id').equalTo(commentId).once('value', snapshot => {
-                                snapshot.forEach(child => {
-                                    child.ref.remove();
-                                });
-                            });
-                        }
-                        this.showToast('Komentar dihapus');
+                    const result = await response.json().catch(() => ({}));
+                    if(!response.ok && response.status !== 404) {
+                        throw new Error(result.message || 'Gagal menghapus komentar');
                     }
+
+                    await this.syncFirebaseSafely(() => this.removeFirebaseComment(commentId));
+                    this.showDeleteCommentModal = false;
+                    this.commentToDeleteId = null;
+                    this.showToast(result.message || 'Komentar dihapus');
                 } catch (e) {
-                    this.showToast('Gagal menghapus komentar', 'error');
+                    this.comments = previousComments;
+                    if (this.selectedItem) this.updateItemCommentCount(this.selectedItem.id);
+                    this.showToast(e.message, 'error');
+                } finally {
+                    this.isDeletingComment = false;
                 }
+            },
+
+            async findFirebaseCommentKeys(commentId) {
+                if (!this.activeFirebaseRef) return [];
+
+                commentId = String(commentId).trim();
+                const cachedKeys = this.comments
+                    .filter(comment => comment.comment_id === commentId && comment.firebase_key)
+                    .map(comment => comment.firebase_key);
+
+                if (cachedKeys.length > 0) return [...new Set(cachedKeys)];
+
+                const snapshot = await this.activeFirebaseRef.once('value');
+                const keys = [];
+                snapshot.forEach(childSnapshot => {
+                    const value = childSnapshot.val() || {};
+                    if (String(value.comment_id || '').trim() === commentId) {
+                        keys.push(childSnapshot.key);
+                    }
+                });
+
+                return keys;
+            },
+
+            async syncFirebaseSafely(callback) {
+                try {
+                    await callback();
+                } catch (error) {
+                    console.warn('Firebase comment sync failed', error);
+                }
+            },
+
+            firebaseChildRef(key) {
+                return database.ref(`${this.activeFirebasePath}/${key}`);
+            },
+
+            async updateFirebaseComment(commentId, payload) {
+                if (!this.activeFirebaseRef || !this.activeFirebasePath) return;
+
+                const keys = await this.findFirebaseCommentKeys(commentId);
+                await Promise.all(keys.map(key => this.firebaseChildRef(key).update(payload)));
+            },
+
+            async removeFirebaseComment(commentId) {
+                if (!this.activeFirebaseRef || !this.activeFirebasePath) return;
+
+                const keys = await this.findFirebaseCommentKeys(commentId);
+                await Promise.all(keys.map(key => this.firebaseChildRef(key).set(null)));
             },
 
             scrollToBottom() {

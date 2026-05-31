@@ -81,7 +81,16 @@ class AuthController extends Controller
         }
 
         if ($request->filled("fcm_token")) {
-            $user->update(["fcm_token" => $request->fcm_token]);
+            DB::transaction(function () use ($request, $user) {
+                User::query()
+                    ->where("fcm_token", "=", $request->fcm_token)
+                    ->where("user_id", "!=", $user->user_id)
+                    ->update(["fcm_token" => null]);
+
+                $user->update(["fcm_token" => $request->fcm_token]);
+            });
+
+            $user->refresh();
         }
 
         // 3. Buat Sanctum Bearer Token

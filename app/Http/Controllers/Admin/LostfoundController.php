@@ -206,9 +206,15 @@ class LostfoundController extends Controller
             ->paginate($perPage);
 
         $comments->getCollection()->transform(function ($comment) {
-            $comment->commenter_photo = $comment->commenter_photo_path
-                ? Storage::disk("public")->url($comment->commenter_photo_path)
-                : null;
+            $comment->comment_id = trim((string) $comment->comment_id);
+            $comment->user_id = trim((string) $comment->user_id);
+            $comment->commenter_photo =
+                $comment->commenter_photo_path &&
+                Storage::disk("public")->exists($comment->commenter_photo_path)
+                    ? Storage::disk("public")->url(
+                        $comment->commenter_photo_path,
+                    )
+                    : null;
             $comment->time_ago = $comment->created_at->diffForHumans();
 
             return $comment;
@@ -242,8 +248,10 @@ class LostfoundController extends Controller
             if ($database) {
                 $database->getReference("lostfound_comments/" . $id)->push([
                     "comment_id" => $comment->comment_id,
+                    "lostfound_id" => $comment->lostfound_id,
                     "comment" => $comment->comment,
                     "created_at" => $comment->created_at->toISOString(),
+                    "update_at" => null,
                     "commenter_name" => $user->name,
                     "commenter_photo" => $user->photo_url,
                     "user_id" => $user->user_id,
@@ -260,11 +268,12 @@ class LostfoundController extends Controller
             [
                 "message" => "Komentar berhasil dikirim.",
                 "data" => [
-                    "comment_id" => $comment->comment_id,
+                    "comment_id" => trim((string) $comment->comment_id),
                     "lostfound_id" => $comment->lostfound_id,
-                    "user_id" => $comment->user_id,
+                    "user_id" => trim((string) $comment->user_id),
                     "comment" => $comment->comment,
                     "created_at" => $comment->created_at->toISOString(),
+                    "update_at" => null,
                     "commenter_name" => $user->name,
                     "commenter_photo" => $user->photo_url,
                     "time_ago" => "Baru saja",
@@ -275,28 +284,125 @@ class LostfoundController extends Controller
     }
 
     /**
-     * Delete a comment from the admin/satpam web session.
+     * Update a comment from the admin/satpam web session.
      */
-    public function deleteComment(string $id)
+    public function updateComment(string $id, Request $request)
     {
         $user = Auth::user();
+        $id = trim($id);
         $comment = LostfoundComment::where("comment_id", $id)->firstOrFail();
 
-        if ($comment->user_id !== $user->user_id && $user->role !== "admin") {
+        if (
+            trim((string) $comment->user_id) !== trim((string) $user->user_id)
+        ) {
             return response()->json(
                 [
                     "message" =>
-                        "Anda tidak memiliki akses untuk menghapus komentar ini.",
+                        "Anda hanya bisa mengedit komentar milik sendiri.",
                 ],
                 403,
             );
         }
 
+        $validated = $request->validate([
+            "comment" => "required|string|max:1000",
+        ]);
+
+        $comment->comment = $validated["comment"];
+        $comment->update_at = now();
+        $comment->save();
+
+        try {
+            $this->syncFirebaseComment($comment->lostfound_id, $id, [
+                "comment" => $comment->comment,
+                "update_at" => $comment->update_at->toISOString(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning(
+                "Firebase RTDB admin comment update sync failed: " .
+                    $e->getMessage(),
+            );
+        }
+
+        return response()->json([
+            "message" => "Komentar berhasil diperbarui.",
+            "data" => [
+                "comment_id" => trim((string) $comment->comment_id),
+                "lostfound_id" => $comment->lostfound_id,
+                "user_id" => trim((string) $comment->user_id),
+                "comment" => $comment->comment,
+                "created_at" => optional($comment->created_at)->toISOString(),
+                "update_at" => optional($comment->update_at)->toISOString(),
+            ],
+        ]);
+    }
+
+    /**
+     * Delete a comment from the admin/satpam web session.
+     */
+    public function deleteComment(string $id)
+    {
+        $user = Auth::user();
+        $id = trim($id);
+        $comment = LostfoundComment::where("comment_id", $id)->firstOrFail();
+
+        if (
+            trim((string) $comment->user_id) !== trim((string) $user->user_id)
+        ) {
+            return response()->json(
+                [
+                    "message" =>
+                        "Anda hanya bisa menghapus komentar milik sendiri.",
+                ],
+                403,
+            );
+        }
+
+        $lostfoundId = $comment->lostfound_id;
         $comment->delete();
+
+        try {
+            $this->syncFirebaseComment($lostfoundId, $id, null);
+        } catch (\Throwable $e) {
+            Log::warning(
+                "Firebase RTDB admin comment delete sync failed: " .
+                    $e->getMessage(),
+            );
+        }
 
         return response()->json([
             "message" => "Komentar berhasil dihapus.",
         ]);
+    }
+
+    private function syncFirebaseComment(
+        string $lostfoundId,
+        string $commentId,
+        ?array $payload,
+    ): void {
+        $commentId = trim($commentId);
+        $database = $this->firebase->getDatabase();
+        if (!$database) {
+            return;
+        }
+
+        $snapshot = $database
+            ->getReference("lostfound_comments/" . $lostfoundId)
+            ->orderByChild("comment_id")
+            ->equalTo($commentId)
+            ->getSnapshot();
+
+        foreach ($snapshot->getValue() ?? [] as $key => $value) {
+            $reference = $database->getReference(
+                "lostfound_comments/" . $lostfoundId . "/" . $key,
+            );
+
+            if ($payload === null) {
+                $reference->remove();
+            } else {
+                $reference->update($payload);
+            }
+        }
     }
 
     /**

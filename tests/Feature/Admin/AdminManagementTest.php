@@ -280,6 +280,27 @@ class AdminManagementTest extends TestCase
             ->deleteJson(
                 route("admin.lostfound.comments.destroy", $comment->comment_id),
             )
+            ->assertForbidden();
+
+        $this->actingAs($satpam)
+            ->putJson(
+                route("admin.lostfound.comments.update", $comment->comment_id),
+                [
+                    "comment" => "Komentar dari satpam sudah diedit.",
+                ],
+            )
+            ->assertOk()
+            ->assertJsonPath("message", "Komentar berhasil diperbarui.");
+
+        $this->assertDatabaseHas("lostfound_comments", [
+            "comment_id" => $comment->comment_id,
+            "comment" => "Komentar dari satpam sudah diedit.",
+        ]);
+
+        $this->actingAs($satpam)
+            ->deleteJson(
+                route("admin.lostfound.comments.destroy", $comment->comment_id),
+            )
             ->assertOk()
             ->assertJsonPath("message", "Komentar berhasil dihapus.");
 
