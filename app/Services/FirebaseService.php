@@ -84,7 +84,7 @@ class FirebaseService
     /**
      * Create Firebase User
      */
-    public function createUser(string $email, string $password, string $displayName = null)
+    public function createUser(string $email, string $password, ?string $displayName = null)
     {
         try {
             $userProperties = [
@@ -125,6 +125,10 @@ class FirebaseService
     {
         try {
             $notification = \Kreait\Firebase\Messaging\Notification::create($title, $body);
+            $data = collect($data)
+                ->map(fn ($value) => $value === null ? '' : (string) $value)
+                ->all();
+
             $message = \Kreait\Firebase\Messaging\CloudMessage::new()
                 ->withToken($fcmToken)
                 ->withNotification($notification)

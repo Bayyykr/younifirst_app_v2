@@ -32,9 +32,15 @@ class EventController extends Controller
             });
         }
 
-        // -- Status filter (supports: pending, upcoming, ongoing, completed, cancelled, rejected)
+        // -- Status filter (supports: pending, approved, upcoming, ongoing, completed, cancelled, rejected)
         if ($request->filled("status")) {
-            $query->where("status", $request->status);
+            $status = strtolower((string) $request->status);
+
+            if ($status === "approved") {
+                $query->whereIn("status", ["upcoming", "ongoing", "completed"]);
+            } else {
+                $query->where("status", $status);
+            }
         }
 
         // -- Category filter by ID
@@ -139,34 +145,27 @@ class EventController extends Controller
             "end_date" => "required|date|after_or_equal:start_date",
             "location" => "required|string|max:255",
             "poster" => "nullable|image|mimes:jpeg,png,jpg|max:5120",
-            "created_by" => "required|exists:users,user_id",
-            "status" =>
-                "nullable|in:pending,upcoming,ongoing,completed,cancelled,rejected",
-            "rejection_reason" =>
-                "required_if:status,rejected|nullable|string|max:1000",
         ]);
 
         $event = new Event();
         // Generate custom ID: EVT + 7 random characters (total 10)
         $event->event_id = "EVT" . strtoupper(Str::random(7));
-        $event->fill($request->except("poster"));
+        $event->fill($validated);
 
         if ($request->hasFile("poster")) {
             $path = $request->file("poster")->store("events", "public");
             $event->poster = $path;
         }
 
-        $event->status = $request->input("status", "pending");
-        $event->rejection_reason =
-            $event->status === "rejected"
-                ? $request->input("rejection_reason")
-                : null;
+        $event->created_by = $request->user()->user_id;
+        $event->status = "pending";
+        $event->rejection_reason = null;
         $event->created_at = Carbon::now();
         $event->save();
 
         return response()->json(
             ["message" => "Event created successfully", "data" => $event],
-            213,
+            201,
         );
     }
 

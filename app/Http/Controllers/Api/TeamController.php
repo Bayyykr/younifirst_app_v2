@@ -166,7 +166,7 @@ class TeamController extends Controller
                     'message' => 'Team created successfully and waiting for admin approval',
                     'data' => $team,
                 ],
-                211,
+                201,
             );
         });
     }
