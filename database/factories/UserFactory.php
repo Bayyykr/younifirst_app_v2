@@ -14,28 +14,31 @@ class UserFactory extends Factory
 
     public function definition(): array
     {
-        $roles = ['admin', 'user'];
+        $roles = ["admin", "user", "satpam"];
         $prodis = [
-            'Teknik Informatika',
-            'Sistem Informasi',
-            'Ilmu Komputer',
-            'Teknik Elektro',
-            'Manajemen',
-            'Akuntansi',
+            "Teknik Informatika",
+            "Sistem Informasi",
+            "Ilmu Komputer",
+            "Teknik Elektro",
+            "Manajemen",
+            "Akuntansi",
         ];
-        $statuses = ['active', 'inactive', 'suspended', 'blocked'];
+        $statuses = ["active", "inactive", "suspended", "blocked"];
 
         return [
-            'user_id'    => strtoupper(substr($this->faker->unique()->bothify('USR#####'), 0, 10)),
-            'name'       => $this->faker->name(),
-            'email'      => $this->faker->unique()->safeEmail(),
-            'password'   => static::$password ??= Hash::make('password'),
-            'role'       => $this->faker->randomElement($roles),
-            'nim'        => $this->faker->numerify('E41240###'),
-            'prodi'      => $this->faker->randomElement($prodis),
-            'photo'      => null,
-            'status'     => $this->faker->randomElement($statuses),
-            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            "user_id" => strtoupper(
+                substr($this->faker->unique()->bothify("USR#####"), 0, 10),
+            ),
+            "name" => $this->faker->name(),
+            "email" => $this->faker->unique()->safeEmail(),
+            "email_verified_at" => now(),
+            "password" => (static::$password ??= Hash::make("password")),
+            "role" => $this->faker->randomElement($roles),
+            "nim" => $this->faker->numerify("E41240###"),
+            "prodi" => $this->faker->randomElement($prodis),
+            "photo" => null,
+            "status" => $this->faker->randomElement($statuses),
+            "created_at" => $this->faker->dateTimeBetween("-1 year", "now"),
         ];
     }
 
@@ -44,9 +47,11 @@ class UserFactory extends Factory
      */
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'admin',
-        ]);
+        return $this->state(
+            fn(array $attributes) => [
+                "role" => "admin",
+            ],
+        );
     }
 
     /**
@@ -54,8 +59,34 @@ class UserFactory extends Factory
      */
     public function regularUser(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'role' => 'user',
-        ]);
+        return $this->state(
+            fn(array $attributes) => [
+                "role" => "user",
+            ],
+        );
+    }
+
+    /**
+     * Indicate that the user is a security officer.
+     */
+    public function satpam(): static
+    {
+        return $this->state(
+            fn(array $attributes) => [
+                "role" => "satpam",
+            ],
+        );
+    }
+
+    /**
+     * Indicate that the user's email address is unverified.
+     */
+    public function unverified(): static
+    {
+        return $this->state(
+            fn(array $attributes) => [
+                "email_verified_at" => null,
+            ],
+        );
     }
 }
