@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Export Laporan')
+@section('page_title', 'Export Laporan')
 
 @push('styles')
 <style>
