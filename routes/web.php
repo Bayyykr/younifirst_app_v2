@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OtpController;
 
@@ -174,24 +173,4 @@ Route::get("otp/verify", [OtpController::class, "showVerifyForm"])->name(
 Route::post("otp/verify", [OtpController::class, "verifyOtp"])->name(
     "otp.verify.post",
 );
-Route::get("/run-user-seeder", function (Illuminate\Http\Request $request) {
-    $token = env("WEB_SEEDER_TOKEN");
-
-    abort_unless(
-        $token && hash_equals($token, (string) $request->query("token")),
-        404,
-    );
-
-    Artisan::call("db:seed", [
-        "--class" => Database\Seeders\UserSeeder::class,
-        "--force" => true,
-    ]);
-
-    return response()->json([
-        "success" => true,
-        "message" => "UserSeeder berhasil dijalankan.",
-        "output" => Artisan::output(),
-    ]);
-});
-
 require __DIR__ . "/auth.php";
