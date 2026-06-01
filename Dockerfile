@@ -9,6 +9,8 @@ RUN npm ci && npm run build
 FROM composer:2 AS vendor
 WORKDIR /app
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \
@@ -18,8 +20,10 @@ RUN composer install \
     --no-scripts \
     --optimize-autoloader
 
-FROM php:8.3-apache
+FROM php:8.4-apache
 WORKDIR /var/www/html
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
