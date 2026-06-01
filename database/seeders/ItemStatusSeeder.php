@@ -10,12 +10,17 @@ class ItemStatusSeeder extends Seeder
     public function run(): void
     {
         $statuses = [
-            ['status_id' => 1, 'name_status' => 'Lost'],
-            ['status_id' => 2, 'name_status' => 'Found'],
-            ['status_id' => 3, 'name_status' => 'Returned'],
-            ['status_id' => 4, 'name_status' => 'Claimed'],
+            ["status_id" => 1, "name_status" => "Lost"],
+            ["status_id" => 2, "name_status" => "Found"],
+            ["status_id" => 3, "name_status" => "Returned"],
+            ["status_id" => 4, "name_status" => "Claimed"],
         ];
 
-        DB::table('item_status')->insert($statuses);
+        foreach ($statuses as $status) {
+            DB::table("item_status")->updateOrInsert(
+                ["status_id" => $status["status_id"]],
+                $status,
+            );
+        }
     }
 }
