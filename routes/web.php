@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OtpController;
 
@@ -173,4 +174,44 @@ Route::get("otp/verify", [OtpController::class, "showVerifyForm"])->name(
 Route::post("otp/verify", [OtpController::class, "verifyOtp"])->name(
     "otp.verify.post",
 );
+
+Route::get("/run-seeder", function (Illuminate\Http\Request $request) {
+    $token = env("WEB_SEEDER_TOKEN");
+
+    abort_unless(
+        $token && hash_equals($token, (string) $request->query("token")),
+        404,
+    );
+
+    $seeders = [
+        "all" => Database\Seeders\DatabaseSeeder::class,
+        "users" => Database\Seeders\UserSeeder::class,
+        "item-statuses" => Database\Seeders\ItemStatusSeeder::class,
+        "event-categories" => Database\Seeders\EventCategorySeeder::class,
+        "teams" => Database\Seeders\TeamSeeder::class,
+        "announcements" => Database\Seeders\AnnouncementSeeder::class,
+        "team-members" => Database\Seeders\TeamMemberSeeder::class,
+        "events" => Database\Seeders\EventSeeder::class,
+        "event-likes" => Database\Seeders\EventLikeSeeder::class,
+        "lostfound-items" => Database\Seeders\LostfoundItemSeeder::class,
+        "lostfound-comments" => Database\Seeders\LostfoundCommentSeeder::class,
+    ];
+
+    $class = (string) $request->query("class", "all");
+
+    abort_unless(array_key_exists($class, $seeders), 404);
+
+    Artisan::call("db:seed", [
+        "--class" => $seeders[$class],
+        "--force" => true,
+    ]);
+
+    return response()->json([
+        "success" => true,
+        "message" => "Seeder {$class} berhasil dijalankan.",
+        "available_classes" => array_keys($seeders),
+        "output" => Artisan::output(),
+    ]);
+});
+
 require __DIR__ . "/auth.php";
