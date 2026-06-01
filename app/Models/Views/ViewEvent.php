@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Read-only model untuk view_events.
- * Sudah include: name_category, creator_name, creator_email, total_likes, likes_count.
+ * Sudah include: name_category, creator_name, creator_email, total_likes.
  */
 class ViewEvent extends Model
 {

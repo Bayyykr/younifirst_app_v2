@@ -4,10 +4,6 @@ namespace App\Models\Views;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Read-only model untuk view_teams.
- * Sudah include: current_member_count, leader_name, leader_id.
- */
 class ViewTeam extends Model
 {
     protected $table = 'view_teams';

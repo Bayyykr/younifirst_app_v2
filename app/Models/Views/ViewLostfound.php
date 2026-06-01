@@ -4,10 +4,6 @@ namespace App\Models\Views;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Read-only model untuk view_lostfound.
- * Include: status (enum: lost|found|claimed), reporter_name, reporter_email, reporter_nim, reporter_prodi, total_comments.
- */
 class ViewLostfound extends Model
 {
     protected $table = 'view_lostfound';

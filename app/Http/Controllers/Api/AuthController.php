@@ -34,7 +34,7 @@ class AuthController extends Controller
             "remember" => "required|boolean",
         ]);
 
-        // 1. Autentikasi ke Firebase menggunakan REST API
+        // 1. Melakukan autentikasi ke Firebase menggunakan REST API
         $firebaseResult = $this->firebase->signInWithEmailAndPassword(
             $request->email,
             $request->password,
@@ -49,13 +49,13 @@ class AuthController extends Controller
             );
         }
 
-        // 2. Cari user di database MySQL berdasarkan firebase_uid atau email
+        // 2. Mencari user di database MySQL berdasarkan firebase_uid atau email
         $user = User::where("firebase_uid", $firebaseResult["uid"])->first();
 
         if (!$user) {
             $user = User::where("email", $request->email)->first();
 
-            // Sinkronkan firebase_uid jika user ditemukan via email
+            // Melakukan Sinkronkan firebase_uid apabila user ditemukan via email
             if ($user) {
                 $user->update(["firebase_uid" => $firebaseResult["uid"]]);
             }
@@ -93,7 +93,7 @@ class AuthController extends Controller
             $user->refresh();
         }
 
-        // 3. Buat Sanctum Bearer Token
+        // 3. Membuat Sanctum Bearer Token
         $deviceName = $request->device_name ?? "API Token";
         $token = $user->createToken($deviceName)->plainTextToken;
 
